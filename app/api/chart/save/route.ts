@@ -11,7 +11,10 @@ export async function POST(req: Request) {
     const { layout, journalId } = await req.json();
 
     if (!layout || !journalId)
-      return NextResponse.json({ error: "Missing layout or journalId" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing layout or journalId" },
+        { status: 400 }
+      );
 
     // ✅ Ensure the journal belongs to the user
     const journal = await prisma.journalAccount.findFirst({
@@ -24,12 +27,25 @@ export async function POST(req: Request) {
         { status: 403 }
       );
 
-    // ✅ Upsert chart per journal
-    const result = await prisma.chart.upsert({
+    // ✅ Check if chart already exists
+    const existingChart = await prisma.chart.findFirst({
       where: { journalId: Number(journalId) },
-      update: { data: layout },
-      create: { journalId: Number(journalId), data: layout },
     });
+
+    let result;
+    if (existingChart) {
+      result = await prisma.chart.update({
+        where: { id: existingChart.id },
+        data: { data: layout },
+      });
+    } else {
+      result = await prisma.chart.create({
+        data: {
+          journalId: Number(journalId),
+          data: layout,
+        },
+      });
+    }
 
     return NextResponse.json({ success: true, chart: result });
   } catch (err: any) {
