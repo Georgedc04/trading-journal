@@ -27,7 +27,7 @@ export async function GET(req: Request) {
       );
 
     // ✅ Fetch chart linked to this journal
-    const chart = await prisma.chart.findUnique({
+    const chart = await prisma.chart.findFirst({
       where: { journalId: Number(journalId) },
     });
 
