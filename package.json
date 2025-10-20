@@ -1,0 +1,50 @@
+{
+  "name": "trading-journal",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run db:sync && next dev --turbopack",
+    "build": "next build",
+    "start": "next start",
+    "db:generate": "prisma generate",
+    "db:push": "prisma db push",
+    "db:sync": "npm run db:generate && npm run db:push",
+    "db:studio": "prisma studio",
+    "db:migrate": "prisma migrate dev --name sync_schema",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@clerk/nextjs": "^6.33.3",
+    "@clerk/themes": "^2.4.25",
+    "@fullcalendar/daygrid": "^6.1.19",
+    "@fullcalendar/interaction": "^6.1.19",
+    "@fullcalendar/react": "^6.1.19",
+    "@headlessui/react": "^2.2.9",
+    "@prisma/client": "^6.17.1",
+    "autoprefixer": "^10.4.21",
+    "class-variance-authority": "^0.7.1",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.23.24",
+    "lightweight-charts": "^4.2.0",
+    "lucide-react": "^0.545.0",
+    "next": "15.5.4",
+    "next-themes": "^0.4.6",
+    "postcss": "^8.5.6",
+    "prisma": "^6.17.1",
+    "react": "19.1.0",
+    "react-calendar": "^6.0.0",
+    "react-dom": "19.1.0",
+    "react-icons": "^5.5.0",
+    "recharts": "^3.2.1",
+    "tailwind-merge": "^3.3.1",
+    "tailwindcss-animate": "^1.0.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "tailwindcss": "^4.1.14",
+    "typescript": "^5.4.0"
+  }
+}

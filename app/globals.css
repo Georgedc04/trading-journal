@@ -1,0 +1,147 @@
+@import "tailwindcss";
+
+/* ===== Animations ===== */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.fadeInUp {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+/* ===== Light (Coffee) Theme ===== */
+:root {
+  --color-primary: #8b593e;
+  --color-background: #fff8f3;
+  --color-foreground: #4a3428;
+  --color-border: #e5d3b7;
+  --color-white: #ffffff;
+  --color-text-light: #9a8478;
+  --color-expense: #e74c3c;
+  --color-income: #2ecc71;
+  --color-card: #ffffff;
+  --color-shadow: rgba(0, 0, 0, 0.1);
+}
+
+/* ===== Dark Theme ===== */
+[data-theme="dark"],
+.dark {
+  --color-primary: #34d399;
+  --color-background: #0a0a0a;
+  --color-foreground: #e2e8f0;
+  --color-border: #1e293b;
+  --color-white: #111827;
+  --color-text-light: #94a3b8;
+  --color-expense: #f87171;
+  --color-income: #10b981;
+  --color-card: #0f172a;
+  --color-shadow: rgba(0, 0, 0, 0.5);
+}
+
+/* ===== Base Styles ===== */
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: "Inter", Arial, Helvetica, sans-serif;
+  transition: background 0.3s ease, color 0.3s ease;
+}
+
+a {
+  color: var(--color-primary);
+  transition: color 0.2s ease;
+}
+a:hover {
+  color: var(--color-text-light);
+}
+
+/* ===== Utility Enhancements ===== */
+html {
+  scroll-behavior: smooth;
+}
+
+::-webkit-scrollbar {
+  width: 8px;
+}
+::-webkit-scrollbar-thumb {
+  background-color: rgba(100, 116, 139, 0.4);
+  border-radius: 6px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(100, 116, 139, 0.6);
+}
+
+/* ===== Cards, Shadows, and Containers ===== */
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 4px 12px var(--color-shadow);
+  transition: all 0.25s ease;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px var(--color-shadow);
+}
+
+/* ===== Buttons ===== */
+.btn-primary {
+  background-color: var(--color-primary);
+  color: var(--color-white);
+  font-weight: 600;
+  padding: 0.5rem 1rem;
+  border-radius: 0.5rem;
+  transition: background-color 0.2s ease, transform 0.2s ease;
+}
+.btn-primary:hover {
+  background-color: var(--color-text-light);
+  transform: scale(1.02);
+}
+
+/* ===== Charts & Table Borders ===== */
+.chart-container,
+.table-container {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 0.75rem;
+  box-shadow: 0 2px 6px var(--color-shadow);
+}
+
+/* Hide scrollbars everywhere */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+ @keyframes shimmer {
+                  0% {
+                    transform: translateX(-100%);
+                  }
+                  50% {
+                    transform: translateX(100%);
+                  }
+                  100% {
+                    transform: translateX(100%);
+                  }
+                }

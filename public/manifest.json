@@ -1,0 +1,21 @@
+{
+  "name": "DC Trades",
+  "short_name": "DC Trades",
+  "description": "AI-driven trading journal for consistent traders.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F14",
+  "theme_color": "#38BDF8",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    },
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}
