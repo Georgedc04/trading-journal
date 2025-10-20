@@ -2,20 +2,20 @@ import { currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 
-export async function GET(req: Request) {
+export async function POST(req: Request) {
   const user = await currentUser();
   if (!user)
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   try {
-    // ✅ Get journalId from query string
     const { searchParams } = new URL(req.url);
     const journalId = searchParams.get("journalId");
+    const chartData = await req.json();
 
     if (!journalId)
       return NextResponse.json({ error: "Missing journalId" }, { status: 400 });
 
-    // ✅ Check journal ownership
+    // ✅ Verify user owns this journal
     const journal = await prisma.journalAccount.findFirst({
       where: { id: Number(journalId), userId: user.id },
     });
@@ -26,16 +26,28 @@ export async function GET(req: Request) {
         { status: 403 }
       );
 
-    // ✅ Fetch chart linked to this journal
-    const chart = await prisma.chart.findFirst({
+    // ✅ Instead of upsert(), do findFirst + update/create manually
+    const existingChart = await prisma.chart.findFirst({
       where: { journalId: Number(journalId) },
     });
 
-    return NextResponse.json({ chart });
+    let saved;
+    if (existingChart) {
+      saved = await prisma.chart.update({
+        where: { id: existingChart.id },
+        data: { data: chartData },
+      });
+    } else {
+      saved = await prisma.chart.create({
+        data: { journalId: Number(journalId), data: chartData },
+      });
+    }
+
+    return NextResponse.json({ chart: saved });
   } catch (err) {
-    console.error("🔥 Load failed:", err);
+    console.error("🔥 Save chart error:", err);
     return NextResponse.json(
-      { error: "Failed to load chart" },
+      { error: "Failed to save chart" },
       { status: 500 }
     );
   }
