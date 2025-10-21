@@ -51,11 +51,14 @@ export default function AccountHeader({
     }
   }, [setAccountSize, setTargetPercent]);
 
-  const isProfit = Number(balance) > Number(accountSize);
-  const diff = Number(accountSize)
-    ? ((Number(balance) - Number(accountSize)) / Number(accountSize)) * 100
-    : 0;
+  const acc = Number(accountSize);
+  const bal = Number(balance);
+  const diff = acc ? ((bal - acc) / acc) * 100 : 0;
   const diffText = `${diff > 0 ? "+" : ""}${diff.toFixed(2)}%`;
+
+  const isProfit = bal > acc;
+  const isLoss = bal < acc;
+  const isNew = bal === acc;
 
   const palette = isDark
     ? {
@@ -65,6 +68,7 @@ export default function AccountHeader({
         accent: "#38BDF8",
         profit: "#22C55E",
         loss: "#EF4444",
+        new: "#F59E0B", // Orange tone for new account in dark mode
         shadow: "0 8px 20px rgba(56,189,248,0.15)",
         button: "from-sky-500 to-cyan-400",
       }
@@ -75,9 +79,16 @@ export default function AccountHeader({
         accent: "#2563EB",
         profit: "#16A34A",
         loss: "#DC2626",
+        new: "#3B82F6", // Light blue tone to match gradient
         shadow: "0 8px 20px rgba(37,99,235,0.15)",
         button: "from-blue-600 to-sky-400",
       };
+
+  const balanceColor = isProfit
+    ? palette.profit
+    : isLoss
+    ? palette.loss
+    : palette.new;
 
   return (
     <motion.div
@@ -100,12 +111,7 @@ export default function AccountHeader({
             className={isDark ? "text-sky-400" : "text-blue-600"}
           />
           <span className="opacity-80">Current Balance:</span>
-          <span
-            className="font-bold"
-            style={{
-              color: isProfit ? palette.profit : palette.loss,
-            }}
-          >
+          <span className="font-bold" style={{ color: balanceColor }}>
             ${isNaN(balance) ? "0.00" : balance.toFixed(2)}
           </span>
         </div>
@@ -132,13 +138,15 @@ export default function AccountHeader({
             <div className="flex items-center gap-1">
               {isProfit ? (
                 <TrendingUp size={14} color={palette.profit} />
-              ) : (
+              ) : isLoss ? (
                 <TrendingDown size={14} color={palette.loss} />
+              ) : (
+                <TrendingUp size={14} color={palette.new} />
               )}
               <span
                 className="font-semibold"
                 style={{
-                  color: isProfit ? palette.profit : palette.loss,
+                  color: balanceColor,
                 }}
               >
                 {diffText}
