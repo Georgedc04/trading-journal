@@ -15,13 +15,13 @@ export default function Navbar({ isDark }: { isDark: boolean }) {
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="flex items-center justify-between w-full px-8 py-6 z-20 backdrop-blur-md"
+      className="flex flex-wrap items-center justify-between w-full px-5 sm:px-8 py-4 sm:py-6 z-20 backdrop-blur-md"
     >
       {/* === Brand Logo === */}
       <Logo isDark={isDark} />
 
       {/* === Actions === */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 mt-3 sm:mt-0">
         {/* === Theme Switch === */}
         <motion.button
           whileHover={{ scale: 1.1 }}
@@ -38,28 +38,29 @@ export default function Navbar({ isDark }: { isDark: boolean }) {
 
         {/* === Auth Section === */}
         <SignedOut>
-          {/* ✅ Use Next.js Link for your custom pages */}
-          <Link href="/signin">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              className="px-5 py-2 rounded-md font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-600 shadow-md hover:shadow-lg hover:opacity-90 transition-all"
-            >
-              Log In
-            </motion.button>
-          </Link>
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 items-center">
+            <Link href="/signin">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                className="w-full sm:w-auto px-5 py-2 rounded-md font-semibold text-white bg-gradient-to-r from-sky-500 to-blue-600 shadow-md hover:shadow-lg hover:opacity-90 transition-all"
+              >
+                Sign In
+              </motion.button>
+            </Link>
 
-          <Link href="/signup">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              className={`px-5 py-2 rounded-md font-semibold border-2 ${
-                isDark
-                  ? "border-emerald-400/70 text-emerald-400 hover:bg-emerald-400/10"
-                  : "border-blue-600/60 text-blue-600 hover:bg-blue-600/10"
-              } transition-all`}
-            >
-              Sign Up
-            </motion.button>
-          </Link>
+            <Link href="/signup">
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                className={`w-full sm:w-auto px-5 py-2 rounded-md font-semibold border-2 ${
+                  isDark
+                    ? "border-emerald-400/70 text-emerald-400 hover:bg-emerald-400/10"
+                    : "border-blue-600/60 text-blue-600 hover:bg-blue-600/10"
+                } transition-all`}
+              >
+                Start Now
+              </motion.button>
+            </Link>
+          </div>
         </SignedOut>
 
         {/* === Signed-in user avatar === */}
