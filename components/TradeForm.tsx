@@ -40,7 +40,7 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
     afterImageUrl: "",
   });
 
-  // ✅ Lightweight async image handler
+  // ✅ Image upload
   const handleImageUpload = (e: any, field: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -58,7 +58,7 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.date || !form.direction || !form.reason || !form.amount) {
-      return setError("⚠️ Please fill all required fields. before adding");
+      return setError("⚠️ Please fill all required fields before adding");
     }
     setError("");
     setSubmitting(true);
@@ -120,14 +120,13 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
         color: palette.text,
       }}
     >
-      <h2
-        className="text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent"
-      >
+      <h2 className="text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">
         <BarChart3 size={20} /> Add New Trade
       </h2>
 
       {/* === Basic Inputs === */}
-      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {/* Date */}
         <InputField
           icon={<Calendar size={18} />}
           type="date"
@@ -136,6 +135,7 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
           palette={palette}
         />
 
+        {/* Direction */}
         <DropdownField
           label="Direction"
           value={form.direction}
@@ -147,6 +147,28 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
           palette={palette}
         />
 
+        {/* ✅ Added Pair Dropdown */}
+        <DropdownField
+          label="Pair"
+          value={form.pair}
+          setValue={(v: string) => setForm({ ...form, pair: v })}
+          options={[
+            { name: "EURUSD" },
+            { name: "GBPUSD" },
+            { name: "USDJPY" },
+            { name: "XAUUSD" },
+            { name: "BTCUSD" },
+            { name: "ETHUSD" },
+            { name: "USDCAD" },
+            { name: "AUDUSD" },
+            { name: "NZDUSD" },
+            { name: "NAS100" },
+            { name: "SPX500" },
+          ]}
+          palette={palette}
+        />
+
+        {/* Amount */}
         <InputField
           icon={<DollarSign size={18} />}
           type="number"

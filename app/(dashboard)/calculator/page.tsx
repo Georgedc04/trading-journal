@@ -156,10 +156,10 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
       >
         <Logo isDark={false} />
         <motion.h1
-          className="text-3xl sm:text-4xl font-extrabold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent pb-2"
+          className="text-2xl sm:text-4xl font-extrabold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent pb-2"
           whileHover={{ scale: 1.03 }}
         >
-          Trading Insights
+          Forex Calculator
         </motion.h1>
         <p
           className={`text-sm ${
