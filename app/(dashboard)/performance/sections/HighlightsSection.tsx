@@ -1,6 +1,13 @@
 "use client";
 import { motion } from "framer-motion";
-import { TrendingUp, TrendingDown, ArrowUpRight, ArrowDownRight, CalendarDays } from "lucide-react";
+import {
+  TrendingUp,
+  TrendingDown,
+  ArrowUpRight,
+  ArrowDownRight,
+  CalendarDays,
+} from "lucide-react";
+import { useTheme } from "next-themes";
 
 export default function HighlightsSection({
   biggestProfit,
@@ -11,51 +18,85 @@ export default function HighlightsSection({
   biggestLoss: any;
   colors: any;
 }) {
-  if (!biggestProfit || !biggestLoss) return null;
+  const { theme } = useTheme();
+  const isDark = theme === "dark";
+
+  // ✅ Only show profit if > 0
+  const showProfit = biggestProfit && biggestProfit.result > 0;
+  // ✅ Only show loss if < 0
+  const showLoss = biggestLoss && biggestLoss.result < 0;
+
+  if (!showProfit && !showLoss) return null;
 
   return (
     <motion.section
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.8 }}
-      className="grid grid-cols-1 md:grid-cols-2 gap-6 w-full max-w-5xl mx-auto"
+      className={`grid grid-cols-1 ${
+        showProfit && showLoss ? "md:grid-cols-2" : "md:grid-cols-1"
+      } gap-6 w-full max-w-5xl mx-auto`}
     >
-      {/* Profit */}
-      <TradeCard
-        type="profit"
-        trade={biggestProfit}
-        colors={colors}
-        icon={<TrendingUp size={22} color={colors.profit} />}
-        arrow={<ArrowUpRight size={22} color={colors.profit} />}
-      />
+      {showProfit && (
+        <TradeCard
+          type="profit"
+          trade={biggestProfit}
+          colors={colors}
+          isDark={isDark}
+          icon={<TrendingUp size={22} color={colors.profit} />}
+          arrow={<ArrowUpRight size={22} color={colors.profit} />}
+        />
+      )}
 
-      {/* Loss */}
-      <TradeCard
-        type="loss"
-        trade={biggestLoss}
-        colors={colors}
-        icon={<TrendingDown size={22} color={colors.loss} />}
-        arrow={<ArrowDownRight size={22} color={colors.loss} />}
-      />
+      {showLoss && (
+        <TradeCard
+          type="loss"
+          trade={biggestLoss}
+          colors={colors}
+          isDark={isDark}
+          icon={<TrendingDown size={22} color={colors.loss} />}
+          arrow={<ArrowDownRight size={22} color={colors.loss} />}
+        />
+      )}
     </motion.section>
   );
 }
 
-function TradeCard({ type, trade, colors, icon, arrow }: any) {
+function TradeCard({ type, trade, colors, icon, arrow, isDark }: any) {
   const isProfit = type === "profit";
+
+  // ✅ Softer gradients depending on mode
   const bg = isProfit
-    ? "linear-gradient(135deg, rgba(6,78,59,0.65), rgba(20,83,45,0.5))"
-    : "linear-gradient(135deg, rgba(69,10,10,0.65), rgba(127,29,29,0.5))";
+    ? isDark
+      ? "linear-gradient(145deg, rgba(22,163,74,0.25), rgba(21,128,61,0.15))"
+      : "linear-gradient(145deg, rgba(187,247,208,0.8), rgba(134,239,172,0.7))"
+    : isDark
+      ? "linear-gradient(145deg, rgba(220,38,38,0.25), rgba(185,28,28,0.15))"
+      : "linear-gradient(145deg, rgba(254,202,202,0.8), rgba(252,165,165,0.7))";
+
+  const borderColor = isProfit
+    ? isDark
+      ? "rgba(34,197,94,0.3)"
+      : "rgba(22,163,74,0.3)"
+    : isDark
+      ? "rgba(239,68,68,0.3)"
+      : "rgba(220,38,38,0.3)";
+
+  const boxShadow = isProfit
+    ? isDark
+      ? "0 8px 20px rgba(34,197,94,0.15)"
+      : "0 8px 20px rgba(22,163,74,0.2)"
+    : isDark
+      ? "0 8px 20px rgba(239,68,68,0.15)"
+      : "0 8px 20px rgba(220,38,38,0.2)";
 
   return (
     <div
       className="p-6 rounded-2xl border shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-[1.01]"
       style={{
         background: bg,
-        borderColor: isProfit ? "rgba(52,211,153,0.25)" : "rgba(248,113,113,0.25)",
-        boxShadow: isProfit
-          ? "0 8px 20px rgba(52,211,153,0.1)"
-          : "0 8px 20px rgba(248,113,113,0.1)",
+        borderColor,
+        boxShadow,
       }}
     >
       <div className="flex items-center justify-between mb-4">
@@ -72,12 +113,21 @@ function TradeCard({ type, trade, colors, icon, arrow }: any) {
       </div>
 
       <div className="space-y-2 text-sm sm:text-base">
-        <p><strong>Pair:</strong> {trade.pair}</p>
-        <p><strong>Direction:</strong> {trade.direction}</p>
-        <p><strong>Quality:</strong> {trade.quality}</p>
+        <p>
+          <strong>Pair:</strong> {trade.pair}
+        </p>
+        <p>
+          <strong>Direction:</strong> {trade.direction}
+        </p>
+        <p>
+          <strong>Quality:</strong> {trade.quality}
+        </p>
         <p>
           <strong>Result:</strong>{" "}
-          <span className="font-semibold" style={{ color: isProfit ? colors.profit : colors.loss }}>
+          <span
+            className="font-semibold"
+            style={{ color: isProfit ? colors.profit : colors.loss }}
+          >
             {isProfit ? "+" : "-"}${Math.abs(trade.result).toFixed(2)}
           </span>
         </p>
