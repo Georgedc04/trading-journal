@@ -34,7 +34,7 @@ export default function HeroSection({ isDark }: { isDark: boolean }) {
       >
         {/* === Title === */}
         <h1
-          className="text-5xl sm:text-6xl font-extrabold leading-tight mb-4"
+          className="text-4xl sm:text-6xl font-extrabold leading-tight mb-4"
           style={{
             background: `linear-gradient(to right, ${palette.accent}, ${
               isDark ? "#34D399" : "#60A5FA"
@@ -50,7 +50,7 @@ export default function HeroSection({ isDark }: { isDark: boolean }) {
 
         {/* === Subtext === */}
         <p
-          className="text-base sm:text-lg leading-relaxed mb-8 max-w-xl mx-auto"
+          className="text-sm sm:text-lg leading-relaxed mb-8 max-w-xl mx-auto"
           style={{ color: palette.sub }}
         >
           <span style={{ color: palette.accent, fontWeight: 600 }}>
@@ -76,7 +76,13 @@ export default function HeroSection({ isDark }: { isDark: boolean }) {
                 }}
                 whileTap={{ scale: 0.96 }}
                 transition={{ duration: 0.2 }}
-                className="flex items-center gap-3 px-7 py-3.5 rounded-xl font-semibold text-lg transition-all"
+                className="
+                  flex items-center gap-2 sm:gap-3
+                  px-5 py-2.5 sm:px-7 sm:py-3.5
+                  rounded-lg sm:rounded-xl
+                  font-semibold text-base sm:text-lg
+                  transition-all
+                "
                 style={{
                   background: `linear-gradient(to right, ${palette.accent}, ${
                     isDark ? "#34D399" : "#60A5FA"
@@ -85,9 +91,9 @@ export default function HeroSection({ isDark }: { isDark: boolean }) {
                   boxShadow: `0 0 10px ${palette.glow}`,
                 }}
               >
-                <FaChartLine className="text-xl" />
+                <FaChartLine className="text-lg sm:text-xl" />
                 Launch Dashboard
-                <AiFillStar className="text-yellow-400 text-lg animate-pulse" />
+                <AiFillStar className="text-yellow-400 text-base sm:text-lg animate-pulse" />
               </motion.button>
             </Link>
           </motion.div>
@@ -95,7 +101,7 @@ export default function HeroSection({ isDark }: { isDark: boolean }) {
 
         {/* === Tagline === */}
         <p
-          className="mt-8 text-sm tracking-wide"
+          className="mt-8 text-xs sm:text-sm tracking-wide"
           style={{ color: palette.sub }}
         >
           Powered by <span style={{ color: palette.accent }}>GK</span> Intelligence • Built for Traders

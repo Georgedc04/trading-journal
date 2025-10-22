@@ -29,8 +29,8 @@ export default function DashboardShowcase3D() {
     >
       {/* 🧠 Title */}
       <div className="relative z-20 text-center mb-10 px-4">
-        <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent leading-tight">
-          Journal Dashboard Display
+        <h2 className="text-xl sm:text-4xl md:text-5xl font-extrabold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent leading-tight">
+        Journal Dashboard Display
         </h2>
       </div>
 

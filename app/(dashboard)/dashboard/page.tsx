@@ -226,23 +226,29 @@ export default function DashboardPage() {
 
             {/* === Add Trade Section === */}
             <section
-              className={`border rounded-2xl shadow-md p-6 transition-all duration-300 mb-5 mt-5 hover:shadow-lg ${
-                theme === "dark"
-                  ? "bg-[#111827] border-gray-700"
-                  : "bg-white border-gray-200"
-              }`}
+              className={`border rounded-xl sm:rounded-2xl shadow-md 
+                 transition-all duration-300 
+                mb-4 sm:mb-5 mt-4 sm:mt-5 hover:shadow-lg w-full max-w-full overflow-x-auto 
+                ${
+                  theme === "dark"
+                    ? "bg-[#111827] border-gray-700"
+                    : "bg-white border-gray-200"
+                }`}
             >
-              <TradeForm onAdd={handleAdd} disabled={saving} />
-              {error && (
-                <p className="text-red-500 text-sm mt-3 italic flex items-center gap-1">
-                  ⚠️ {error}
-                </p>
-              )}
+              <div className="w-full max-w-md sm:max-w-none mx-auto">
+                <TradeForm onAdd={handleAdd} disabled={saving} />
+                {error && (
+                  <p className="text-red-500 text-xs sm:text-sm mt-3 italic flex items-center gap-1">
+                    ⚠️ {error}
+                  </p>
+                )}
+              </div>
             </section>
+
 
             {/* === Trade History Section === */}
             <section
-              className={`border rounded-2xl shadow-md p-6 transition-all duration-300 hover:shadow-lg ${
+              className={`border rounded-2xl shadow-md  transition-all duration-300 hover:shadow-lg ${
                 theme === "dark"
                   ? "bg-[#111827] border-gray-700"
                   : "bg-white border-gray-200"

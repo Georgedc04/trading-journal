@@ -31,7 +31,7 @@
 
 /* ===== Light (Coffee) Theme ===== */
 :root {
-  --color-primary: #8b593e;
+  --color-primary: #2563EB;
   --color-background: #fff8f3;
   --color-foreground: #4a3428;
   --color-border: #e5d3b7;
@@ -46,7 +46,7 @@
 /* ===== Dark Theme ===== */
 [data-theme="dark"],
 .dark {
-  --color-primary: #34d399;
+  --color-primary: #38BDF8;
   --color-background: #0a0a0a;
   --color-foreground: #e2e8f0;
   --color-border: #1e293b;

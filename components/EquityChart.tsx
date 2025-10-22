@@ -13,10 +13,9 @@ import {
 import {
   TrendingUp,
   TrendingDown,
-  Trophy,
   Rocket,
   Flame,
-  ThumbsUp,
+  BarChart3,
 } from "lucide-react";
 
 type EquityChartProps = {
@@ -74,7 +73,7 @@ export default function EquityChart({ data, accountSize }: EquityChartProps) {
         tooltipText: "#111827",
       }
     : {
-        bg: "rgba(17,25,40,0.55)",
+        bg: "linear-gradient(135deg, #0A0F1C, #111827)",
         line: isDrawdown ? "#F87171" : "#34D399",
         gradientStart: isDrawdown ? "#7F1D1D" : "#064E3B",
         gradientEnd: isDrawdown ? "#991B1B" : "#065F46",
@@ -95,7 +94,7 @@ export default function EquityChart({ data, accountSize }: EquityChartProps) {
       {/* === Header === */}
       <div className="flex flex-col sm:flex-row justify-between items-center mb-4 gap-2">
         <h2 className="text-lg sm:text-xl font-semibold flex items-center gap-2 text-amber-500">
-          <Trophy size={20} /> Equity Curve
+          <BarChart3 size={20} /> Equity Revenue
         </h2>
 
         <div
@@ -108,7 +107,7 @@ export default function EquityChart({ data, accountSize }: EquityChartProps) {
               <TrendingDown size={16} /> Drawdown: {diffPercent}%
             </>
           ) : (
-            <>
+            <> 
               <TrendingUp size={16} /> Profit: +{diffPercent}%
             </>
           )}

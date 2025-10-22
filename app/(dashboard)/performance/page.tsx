@@ -49,13 +49,13 @@ export default function PerformancePage() {
       }}
     >
       {/* Loading Overlay */}
-      {loading && (
+      {/* {loading && (
         <div className="absolute inset-0 z-30 flex flex-col items-center justify-center bg-black/30 backdrop-blur-sm transition-all duration-300">
           <p className="text-base font-medium opacity-80 animate-pulse text-white">
             Fetching performance data...
           </p>
         </div>
-      )}
+      )} */}
 
       {/* Header */}
       <HeaderSection

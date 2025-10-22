@@ -86,23 +86,32 @@ export default function Home() {
               isDark={isDark}
             />
           </motion.div>
-        </div>
-        <div className="flex flex-col items-center justify-center text-center ">
-          <p className="text-gray-600 mb-8 text-lg max-w-md">
-            Analyze your trades, calculate lot sizes, and manage risk smartly.
-          </p>
 
-          <Link href="/forex-calculator">
-            <motion.button
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.97 }}
-              className="flex items-center justify-center gap-3 px-6 py-3 rounded-xl font-semibold text-lg bg-gradient-to-r from-sky-600 to-cyan-400 text-white shadow-lg hover:opacity-90 transition"
-            >
-              <Calculator size={22} />
-              Open Forex Calculator
-            </motion.button>
-          </Link>
-        </div>
+          </div>
+            <div className="flex flex-col items-center justify-center text-center pt-10">
+              <p className=" mb-6 text-sm sm:text-lg max-w-md">
+                Analyze your trades, calculate lot sizes, and manage risk smartly.
+              </p>
+
+              <Link href="/forex-calculator">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.97 }}
+                  className="
+                    flex items-center justify-center gap-2 sm:gap-3
+                    px-4 py-2.5 sm:px-6 sm:py-3
+                    rounded-lg sm:rounded-xl
+                    font-semibold text-base sm:text-lg
+                    bg-gradient-to-r from-sky-600 to-cyan-400
+                    text-white shadow-lg hover:opacity-90 transition
+                  "
+                >
+                  <Calculator size={18} className="sm:size-[22px]" />
+                  Open Forex Calculator
+                </motion.button>
+              </Link>
+            </div>
+
 
 
         <SocialIcons ACTIVE={ACTIVE} />
@@ -111,26 +120,32 @@ export default function Home() {
         {/* === Live Price & App Showcase === */}
         <LiveBitcoinPrice isDark={isDark} />
         <AppShowcase isDark={isDark} />
-
+        
         {/* === How to Use DC Trades Button (Elegant Glow Style) === */}
-        <div className="flex justify-center my-20">
+        <div className="flex justify-center my-14 sm:my-20 px-4">
           <Link href="/decree">
             <motion.button
               whileHover={{ scale: 1.07 }}
               whileTap={{ scale: 0.96 }}
               transition={{ type: "spring", stiffness: 220, damping: 15 }}
-              className={`relative overflow-hidden px-10 py-3 text-lg font-semibold tracking-wide rounded-2xl shadow-lg flex items-center gap-2 ${
-                isDark
-                  ? "bg-gradient-to-r from-cyan-500 via-sky-400 to-blue-500 text-white"
-                  : "bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white"
-              }`}
+              className={`relative overflow-hidden 
+                px-6 py-2.5 sm:px-10 sm:py-3 
+                text-base sm:text-lg 
+                font-semibold tracking-wide 
+                rounded-xl sm:rounded-2xl 
+                shadow-lg flex items-center gap-2 sm:gap-3 
+                ${
+                  isDark
+                    ? "bg-gradient-to-r from-cyan-500 via-sky-400 to-blue-500 text-white"
+                    : "bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white"
+                }`}
               style={{
                 boxShadow: isDark
                   ? "0 0 10px rgba(56,189,248,0.4)"
                   : "0 0 10px rgba(234,179,8,0.35)",
               }}
             >
-              {/* animated light sweep */}
+              {/* Animated light sweep */}
               <motion.span
                 initial={{ x: "-100%" }}
                 whileHover={{ x: "100%" }}
@@ -139,8 +154,8 @@ export default function Home() {
               />
 
               {/* Icon + Text */}
-              <span className="relative z-10 flex items-center justify-center gap-3">
-                <GraduationCap className="w-6 h-6" strokeWidth={2.3} />
+              <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
+                <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.3} />
                 <span>How to Use DC Trades</span>
               </span>
             </motion.button>

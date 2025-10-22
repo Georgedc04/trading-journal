@@ -60,12 +60,12 @@ export default function EquityChart({ data, accountSize }: EquityChartProps) {
   // ✅ Theme-aware colors
   const color = theme === "light"
     ? {
-        bg: "linear-gradient(135deg, #F9FAFB, #E0F2FE)",
-        grid: "#E5D3B7",
+        bg: "rgba(255,255,255,0.65)",
+        grid: "#E5E7EB",
         line: isDrawdown ? "#E74C3C" : "#8B593E",
         dot: isDrawdown ? "#C0392B" : "#D7A86E",
-        tooltipBg: "#FFF3E3",
-        tooltipText: "#4A3428",
+        tooltipBg: "rgba(255,255,255,0.9)",
+        tooltipText: "#111827",
       }
     : {
         bg: "linear-gradient(135deg, #0A0F1C, #111827)",
@@ -106,11 +106,11 @@ export default function EquityChart({ data, accountSize }: EquityChartProps) {
     )
 
   return (
-    <div
-      className="p-4 sm:p-6 rounded-xl border shadow-lg transition-colors duration-300"
+   <div
+      className="p-5 sm:p-6 rounded-2xl border shadow-xl backdrop-blur-md transition-all duration-300"
       style={{
         background: color.bg,
-        borderColor: theme === "light" ? "#E5D3B7" : "#334155",
+        borderColor: theme === "light" ? "rgba(0,0,0,0.05)" : "rgba(255,255,255,0.1)",
       }}
     >
       {/* Header */}

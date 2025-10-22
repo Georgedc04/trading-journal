@@ -298,8 +298,8 @@ export default function TradeTable({ trades, onDelete, onEdit }: TradeTableProps
           </div>
 
           {/* === Table === */}
-          <div className="hidden sm:block w-full overflow-x-auto">
-            <table className="w-full text-sm">
+          <div className="block w-full overflow-x-auto sm:overflow-visible">
+            <table className="w-full text-xs sm:text-sm min-w-[600px]">
               <thead>
                 <tr
                   className="border-b"

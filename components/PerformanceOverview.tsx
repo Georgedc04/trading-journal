@@ -131,7 +131,7 @@ export default function PerformanceOverview({
           ? "linear-gradient(135deg, #0B0F14, #111827)"
           : "linear-gradient(135deg, #FFFFFF, #E0F2FE)",
         borderColor: palette.border,
-        boxShadow: `0 8px 25px ${palette.shadow}`,
+        boxShadow: `0 2px 8px ${palette.shadow}`,
         color: palette.text,
       }}
     >
