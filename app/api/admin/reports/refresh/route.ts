@@ -4,14 +4,13 @@ import { NextResponse } from "next/server";
 import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/prisma";
 
-// In-memory cache (auto-clears when the server restarts)
 let cachedReport: any = null;
-let lastUpdated: number = 0;
+let lastUpdated = 0;
 const CACHE_TTL = 1000 * 60 * 5; // 5 minutes
 
 export async function GET() {
   try {
-    // ✅ 1. Admin authentication
+    // ✅ 1. Verify admin
     const admin = await currentUser();
     if (!admin)
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -22,7 +21,7 @@ export async function GET() {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    // ✅ 2. Use cached report if still valid
+    // ✅ 2. Cache check
     const now = Date.now();
     if (cachedReport && now - lastUpdated < CACHE_TTL) {
       return NextResponse.json({
@@ -32,7 +31,7 @@ export async function GET() {
       });
     }
 
-    // ✅ 3. Generate fresh report
+    // ✅ 3. Generate report
     const totalUsers = await prisma.user.count();
     const totalJournals = await prisma.journalAccount.count();
 
@@ -41,16 +40,14 @@ export async function GET() {
       where: { createdAt: { gte: since } },
     });
 
-    // ✅ Include user email explicitly (not just id)
+    // ✅ Include user with email field (works with your schema)
     const recentTrades = await prisma.trade.findMany({
       orderBy: { createdAt: "desc" },
       take: 25,
       include: {
         journal: {
           include: {
-            user: {
-              select: { id: true, email: true, name: true }, // ✅ email explicitly fetched
-            },
+            user: true, // ✅ Full user model, includes email & name
           },
         },
       },
@@ -58,11 +55,7 @@ export async function GET() {
 
     const logs = recentTrades.map((t) => ({
       time: new Date(t.createdAt).toLocaleString(),
-      user:
-        t.journal.user?.email ||
-        t.journal.user?.name ||
-        `User-${t.journal.user?.id?.slice(0, 5)}` ||
-        "Unknown",
+      user: t.journal.user?.email || t.journal.user?.name || "Unknown User",
       action: `Logged a ${t.direction} trade on ${t.pair}`,
       status: Number(t.result) >= 0 ? "Success" : "Loss",
     }));
@@ -78,7 +71,7 @@ export async function GET() {
 
     return NextResponse.json({ ...cachedReport, cached: false });
   } catch (err: any) {
-    console.error("Reports Refresh API error:", err);
+    console.error("⚠️ Admin report API error:", err);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
