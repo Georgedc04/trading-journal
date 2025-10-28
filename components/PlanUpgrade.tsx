@@ -19,7 +19,7 @@ export default function PlanUpgrade() {
       const res = await fetch("/api/plans/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, duration }),
+        body: JSON.stringify({ plan, duration, email: user?.primaryEmailAddress?.emailAddress }),
       });
 
       const data = await res.json();
@@ -50,8 +50,8 @@ export default function PlanUpgrade() {
     {
       name: "Normal Plan",
       icon: <Zap className="text-emerald-400" size={26} />,
-      monthly: "$3/month",
-      yearly: "$30/year",
+      monthly: "$6 / 2 months",
+      yearly: "$30 / year",
       features: [
         "✅ Unlimited trades",
         "✅ 1 journal account",
@@ -63,11 +63,11 @@ export default function PlanUpgrade() {
     {
       name: "Pro Plan",
       icon: <Crown className="text-yellow-400" size={26} />,
-      monthly: "$5.99/month",
-      yearly: "$50/year",
+      monthly: "$6 / month",
+      yearly: "$50 / year",
       features: [
         "✅ Unlimited journals & trades",
-        "✅ All analytics",
+        "✅ All analytics & charts",
         "🚀 AI-powered insights",
       ],
       color: "from-indigo-600 to-purple-700",

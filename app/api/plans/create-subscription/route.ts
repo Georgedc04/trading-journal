@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 const BASE_URL =
-  process.env.NEXT_PUBLIC_APP_URL || "https://trading-journal-inky-alpha.vercel.app";
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "https://trading-journal-inky-alpha.vercel.app";
 
 export async function POST(req: Request) {
   try {
@@ -14,11 +15,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Define pricing for plans
+    // ✅ Updated pricing to match NOWPayments minimums
     const prices: Record<string, number> = {
-      NORMAL_month: 3,
+      NORMAL_month: 6,     // covers 2 months ($3/mo equivalent)
       NORMAL_year: 30,
-      PRO_month: 5.99,
+      PRO_month: 6,        // bumped to 6 to pass minimum
       PRO_year: 50,
     };
 
@@ -29,7 +30,7 @@ export async function POST(req: Request) {
         { status: 400 }
       );
 
-    // ✅ Use NOWPayments “invoice” endpoint (no JWT needed)
+    // ✅ Create NOWPayments invoice (no JWT needed)
     const response = await fetch("https://api.nowpayments.io/v1/invoice", {
       method: "POST",
       headers: {
@@ -39,7 +40,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         price_amount,
         price_currency: "usd",
-        pay_currency: "usdttrc20",
+        pay_currency: "usdttrc20", // Stable and fast network
         order_id: `${plan}_${duration}_${Date.now()}`,
         order_description: `${plan} ${duration} subscription`,
         customer_email: email || "user@example.com",
@@ -59,7 +60,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Return invoice payment link to frontend
+    // ✅ Return payment link
     return NextResponse.json({ payment_url: data.invoice_url });
   } catch (err) {
     console.error("🔥 Payment creation failed:", err);
