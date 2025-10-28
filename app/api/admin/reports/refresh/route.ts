@@ -36,25 +36,11 @@ export async function GET() {
     const totalUsers = await prisma.user.count();
     const totalJournals = await prisma.journalAccount.count();
 
-    // 🧠 Safe fallback if Prisma type misses updatedAt
+    // 🧠 For Vercel compatibility — only use createdAt filter
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
-    let activeToday = 0;
-
-    try {
-      activeToday = await prisma.journalAccount.count({
-        where: {
-          OR: [
-            { updatedAt: { not: null, gte: since } }, // normal path
-            { createdAt: { gte: since } }, // fallback if updatedAt missing
-          ],
-        },
-      });
-    } catch {
-      // fallback for Vercel or schema mismatch
-      activeToday = await prisma.journalAccount.count({
-        where: { createdAt: { gte: since } },
-      });
-    }
+    const activeToday = await prisma.journalAccount.count({
+      where: { createdAt: { gte: since } },
+    });
 
     const recentTrades = await prisma.trade.findMany({
       orderBy: { createdAt: "desc" },
