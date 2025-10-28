@@ -36,25 +36,33 @@ export async function GET() {
     const totalUsers = await prisma.user.count();
     const totalJournals = await prisma.journalAccount.count();
 
-    // 🧠 For Vercel compatibility — only use createdAt filter
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
     const activeToday = await prisma.journalAccount.count({
       where: { createdAt: { gte: since } },
     });
 
+    // ✅ Include user email explicitly (not just id)
     const recentTrades = await prisma.trade.findMany({
       orderBy: { createdAt: "desc" },
       take: 25,
       include: {
         journal: {
-          include: { user: true },
+          include: {
+            user: {
+              select: { id: true, email: true, name: true }, // ✅ email explicitly fetched
+            },
+          },
         },
       },
     });
 
     const logs = recentTrades.map((t) => ({
       time: new Date(t.createdAt).toLocaleString(),
-      user: t.journal.user?.email || "Unknown",
+      user:
+        t.journal.user?.email ||
+        t.journal.user?.name ||
+        `User-${t.journal.user?.id?.slice(0, 5)}` ||
+        "Unknown",
       action: `Logged a ${t.direction} trade on ${t.pair}`,
       status: Number(t.result) >= 0 ? "Success" : "Loss",
     }));
