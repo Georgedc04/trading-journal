@@ -8,31 +8,40 @@ export async function POST(req: Request) {
     const { plan, duration, email } = await req.json();
 
     if (!plan || !duration) {
-      return NextResponse.json({ error: "Missing plan or duration" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Missing plan or duration" },
+        { status: 400 }
+      );
     }
 
-    const planMap: Record<string, string | undefined> = {
-      NORMAL_month: process.env.NORMAL_MONTH_PLAN_ID,
-      NORMAL_year: process.env.NORMAL_YEAR_PLAN_ID,
-      PRO_month: process.env.PRO_MONTH_PLAN_ID,
-      PRO_year: process.env.PRO_YEAR_PLAN_ID,
+    // ✅ Define pricing for plans
+    const prices: Record<string, number> = {
+      NORMAL_month: 3,
+      NORMAL_year: 30,
+      PRO_month: 5.99,
+      PRO_year: 50,
     };
 
-    const planId = planMap[`${plan}_${duration}`];
-    if (!planId) {
-      return NextResponse.json({ error: "Invalid plan or duration" }, { status: 400 });
-    }
+    const price_amount = prices[`${plan}_${duration}`];
+    if (!price_amount)
+      return NextResponse.json(
+        { error: "Invalid plan or duration" },
+        { status: 400 }
+      );
 
-    // ✅ Correct NOWPayments endpoint (plural)
-    const response = await fetch("https://api.nowpayments.io/v1/subscriptions", {
+    // ✅ Use NOWPayments “invoice” endpoint (no JWT needed)
+    const response = await fetch("https://api.nowpayments.io/v1/invoice", {
       method: "POST",
       headers: {
         "x-api-key": process.env.NOWPAYMENTS_API_KEY!,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        plan_id: planId,
+        price_amount,
         price_currency: "usd",
+        pay_currency: "usdttrc20",
+        order_id: `${plan}_${duration}_${Date.now()}`,
+        order_description: `${plan} ${duration} subscription`,
         customer_email: email || "user@example.com",
         ipn_callback_url: `${BASE_URL}/api/payments/ipn`,
         success_url: `${BASE_URL}/dashboard?success=${plan}_${duration}`,
@@ -42,19 +51,20 @@ export async function POST(req: Request) {
 
     const data = await response.json();
 
-    if (!response.ok) {
+    if (!response.ok || !data.invoice_url) {
       console.error("❌ NOWPayments error:", data);
       return NextResponse.json(
-        { error: data.message || "NOWPayments request failed" },
+        { error: data.message || "Failed to create invoice" },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ payment_url: data.subscription_url });
+    // ✅ Return invoice payment link to frontend
+    return NextResponse.json({ payment_url: data.invoice_url });
   } catch (err) {
-    console.error("🔥 Subscription creation failed:", err);
+    console.error("🔥 Payment creation failed:", err);
     return NextResponse.json(
-      { error: "Server error while creating subscription" },
+      { error: "Server error while creating payment" },
       { status: 500 }
     );
   }
