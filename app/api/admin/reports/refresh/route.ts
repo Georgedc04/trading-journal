@@ -40,14 +40,20 @@ export async function GET() {
       where: { createdAt: { gte: since } },
     });
 
-    // ✅ Include user with email field (works with your schema)
+    // ✅ Explicitly select user fields so TypeScript knows about email
     const recentTrades = await prisma.trade.findMany({
       orderBy: { createdAt: "desc" },
       take: 25,
       include: {
         journal: {
           include: {
-            user: true, // ✅ Full user model, includes email & name
+            user: {
+              select: {
+                id: true,
+                email: true,
+                name: true,
+              },
+            },
           },
         },
       },
@@ -55,7 +61,11 @@ export async function GET() {
 
     const logs = recentTrades.map((t) => ({
       time: new Date(t.createdAt).toLocaleString(),
-      user: t.journal.user?.email || t.journal.user?.name || "Unknown User",
+      user:
+        t.journal.user?.email ||
+        t.journal.user?.name ||
+        `User-${t.journal.user?.id.slice(0, 5)}` ||
+        "Unknown",
       action: `Logged a ${t.direction} trade on ${t.pair}`,
       status: Number(t.result) >= 0 ? "Success" : "Loss",
     }));
