@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || "https://trading-journal-inky-alpha.vercel.app";
+const BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL || "https://trading-journal-inky-alpha.vercel.app";
 
 export async function POST(req: Request) {
   try {
@@ -10,7 +11,6 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Missing plan or duration" }, { status: 400 });
     }
 
-    // ✅ Match plan IDs from .env
     const planMap: Record<string, string | undefined> = {
       NORMAL_month: process.env.NORMAL_MONTH_PLAN_ID,
       NORMAL_year: process.env.NORMAL_YEAR_PLAN_ID,
@@ -23,8 +23,8 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Invalid plan or duration" }, { status: 400 });
     }
 
-    // ✅ Create subscription request
-    const response = await fetch("https://api.nowpayments.io/v1/subscription", {
+    // ✅ Correct NOWPayments endpoint (plural)
+    const response = await fetch("https://api.nowpayments.io/v1/subscriptions", {
       method: "POST",
       headers: {
         "x-api-key": process.env.NOWPAYMENTS_API_KEY!,
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         plan_id: planId,
         price_currency: "usd",
-        customer_email: email || "user@example.com", // use Clerk email if available
+        customer_email: email || "user@example.com",
         ipn_callback_url: `${BASE_URL}/api/payments/ipn`,
         success_url: `${BASE_URL}/dashboard?success=${plan}_${duration}`,
         cancel_url: `${BASE_URL}/plans?cancelled=true`,
@@ -50,7 +50,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Return NOWPayments subscription URL
     return NextResponse.json({ payment_url: data.subscription_url });
   } catch (err) {
     console.error("🔥 Subscription creation failed:", err);
