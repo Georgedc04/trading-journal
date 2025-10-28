@@ -1,22 +1,18 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useTheme } from "next-themes";
 
 export default function KPITiles({ report, loading }: any) {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
-
+  // 🧠 Fixed Neon Palette (always dark)
   const palette = {
-    bg: isDark
-      ? "linear-gradient(145deg, rgba(15,23,42,0.9), rgba(2,6,23,0.7))"
-      : "linear-gradient(145deg, rgba(240,249,255,0.9), rgba(224,242,254,0.8))",
-    border: isDark ? "rgba(56,189,248,0.2)" : "rgba(37,99,235,0.2)",
-    text: isDark ? "#E2E8F0" : "#1E293B",
-    sub: isDark ? "#94A3B8" : "#334155",
-    glow: isDark ? "rgba(56,189,248,0.2)" : "rgba(37,99,235,0.15)",
+    bg: "linear-gradient(145deg, rgba(11,15,20,0.95), rgba(17,24,39,0.95))",
+    border: "rgba(56,189,248,0.25)",
+    text: "#E2E8F0",
+    sub: "rgba(148,163,184,0.75)",
+    glow: "rgba(56,189,248,0.2)",
   };
 
+  // 🌀 Loading Skeleton
   if (loading)
     return (
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
@@ -25,19 +21,21 @@ export default function KPITiles({ report, loading }: any) {
             key={i}
             className="h-20 rounded-xl animate-pulse"
             style={{
-              background: isDark ? "rgba(30,41,59,0.4)" : "rgba(226,232,240,0.6)",
+              background: "rgba(17,24,39,0.6)",
+              boxShadow: "0 0 15px rgba(56,189,248,0.05)",
             }}
           />
         ))}
       </div>
     );
 
+  // 📊 KPI Data
   const tiles = [
-    { label: "Total Trades", value: report.total },
-    { label: "Win Rate", value: `${report.winRate}%` },
-    { label: "Avg Win", value: `$${report.avgWin.toFixed?.(2) || 0}` },
-    { label: "Avg Loss", value: `$${report.avgLoss.toFixed?.(2) || 0}` },
-    { label: "Expectancy", value: `$${report.expectancy.toFixed?.(2) || 0}` },
+    { label: "Total Trades", value: report.total ?? 0 },
+    { label: "Win Rate", value: `${report.winRate ?? 0}%` },
+    { label: "Avg Win", value: `$${report.avgWin?.toFixed?.(2) || 0}` },
+    { label: "Avg Loss", value: `$${report.avgLoss?.toFixed?.(2) || 0}` },
+    { label: "Expectancy", value: `$${report.expectancy?.toFixed?.(2) || 0}` },
   ];
 
   return (
@@ -47,30 +45,27 @@ export default function KPITiles({ report, loading }: any) {
           key={i}
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: i * 0.05, duration: 0.3 }}
-          whileHover={{ scale: 1.03, y: -2 }}
-          className="p-4 rounded-xl border shadow-md backdrop-blur-xl"
+          transition={{ delay: i * 0.06, duration: 0.35 }}
+          whileHover={{ scale: 1.04, y: -3 }}
+          className="p-4 rounded-xl border shadow-md backdrop-blur-xl transition-all"
           style={{
             background: palette.bg,
             borderColor: palette.border,
-            boxShadow: `0 0 20px ${palette.glow}`,
+            boxShadow: `0 0 25px ${palette.glow}`,
             color: palette.text,
           }}
         >
           <div
-            className="text-xs uppercase tracking-wide font-medium"
+            className="text-xs uppercase tracking-wide font-medium mb-1"
             style={{ color: palette.sub }}
           >
             {it.label}
           </div>
+
           <div
-            className="text-lg font-bold mt-1"
+            className="text-lg font-bold bg-gradient-to-r from-sky-400 via-cyan-300 to-emerald-400 bg-clip-text text-transparent"
             style={{
-              background: isDark
-                ? "linear-gradient(to right, #38BDF8, #22C55E)"
-                : "linear-gradient(to right, #0284C7, #16A34A)",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              textShadow: "0 0 8px rgba(56,189,248,0.3)",
             }}
           >
             {it.value}

@@ -2,22 +2,14 @@
 import { motion } from "framer-motion";
 import Image from "next/image";
 
-export default function AppShowcase({ isDark }: { isDark: boolean }) {
-  const palette = isDark
-    ? {
-        frame: "from-sky-400/80 to-cyan-400/40",
-        textMain: "text-cyan-300",
-        textSoft: "text-gray-300",
-        border: "border-cyan-400/20",
-        glow: "rgba(56,189,248,0.8)",
-      }
-    : {
-        frame: "from-blue-500/90 to-orange-400/60",
-        textMain: "text-blue-700",
-        textSoft: "text-gray-700",
-        border: "border-blue-400/20",
-        glow: "rgba(37,99,235,0.6)",
-      };
+export default function AppShowcase() {
+  const palette = {
+    frame: "from-sky-400/80 to-cyan-400/40",
+    textMain: "text-cyan-300",
+    textSoft: "text-gray-300",
+    border: "border-cyan-400/20",
+    glow: "rgba(56,189,248,0.8)",
+  };
 
   const shots = [
     {
@@ -55,19 +47,19 @@ export default function AppShowcase({ isDark }: { isDark: boolean }) {
   ];
 
   return (
-    <section className="py-20 sm:py-32 px-4 sm:px-10 relative overflow-hidden">
+    <section className="py-24 sm:py-36 px-4 sm:px-10 relative overflow-hidden">
       {/* === Section Title === */}
       <motion.h2
         initial={{ opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
         viewport={{ once: true }}
-        className={`text-3xl sm:text-5xl font-extrabold text-center mb-16 sm:mb-24 ${palette.textMain}`}
+        className="text-3xl sm:text-5xl font-extrabold text-center mb-16 sm:mb-24 text-cyan-300 tracking-wide"
       >
         Application Showcase
       </motion.h2>
 
-      {/* === Floating Screenshot Layout === */}
+      {/* === Screenshots Layout === */}
       <div className="flex flex-col items-center gap-16 sm:gap-28 relative max-w-7xl mx-auto">
         {shots.map((shot, i) => (
           <motion.div
@@ -83,13 +75,13 @@ export default function AppShowcase({ isDark }: { isDark: boolean }) {
               whileHover={{
                 scale: 1.04,
                 rotate: 0,
-                boxShadow: `0 0 50px ${palette.glow}`,
+                filter: "drop-shadow(0 0 10px rgba(56,189,248,0.5))",
               }}
-              transition={{ type: "spring", stiffness: 180 }}
-              className={`relative ${shot.width} rounded-2xl sm:rounded-3xl p-[2px] sm:p-[3px] bg-gradient-to-br ${palette.frame} shadow-[0_0_30px_${palette.glow}] transition-transform duration-500 ${shot.tilt}`}
+              transition={{ type: "spring", stiffness: 160, damping: 15 }}
+              className={`relative ${shot.width} rounded-2xl sm:rounded-3xl p-[2px] sm:p-[3px] bg-gradient-to-br ${palette.frame} shadow-[0_0_15px_rgba(56,189,248,0.3)] transition-transform duration-500 ${shot.tilt}`}
             >
               <div
-                className={`rounded-2xl sm:rounded-3xl overflow-hidden border ${palette.border} backdrop-blur-xl`}
+                className={`rounded-2xl sm:rounded-3xl overflow-hidden border ${palette.border} backdrop-blur-xl bg-[#0F172A]/70`}
               >
                 <div className="relative w-full aspect-[16/9] overflow-hidden">
                   <Image
@@ -102,16 +94,12 @@ export default function AppShowcase({ isDark }: { isDark: boolean }) {
               </div>
             </motion.div>
 
-            {/* === Text === */}
+            {/* === Description Text === */}
             <div className="max-w-xl mx-auto px-2 sm:px-0">
-              <h3
-                className={`text-2xl sm:text-3xl font-semibold mb-2 sm:mb-3 tracking-wide ${palette.textMain}`}
-              >
+              <h3 className="text-2xl sm:text-3xl font-semibold mb-2 sm:mb-3 tracking-wide text-cyan-300">
                 {shot.title}
               </h3>
-              <p
-                className={`text-base sm:text-xl leading-relaxed ${palette.textSoft}`}
-              >
+              <p className="text-base sm:text-lg leading-relaxed text-gray-300 opacity-90">
                 {shot.desc}
               </p>
             </div>
@@ -121,11 +109,10 @@ export default function AppShowcase({ isDark }: { isDark: boolean }) {
 
       {/* === Ambient Glow === */}
       <motion.div
-        className="absolute -z-10 top-1/3 left-1/2 w-[90vw] h-[90vw] rounded-full blur-[120px] opacity-10"
+        className="absolute -z-10 top-1/3 left-1/2 w-[85vw] h-[85vw] rounded-full blur-[140px] opacity-10"
         style={{
-          background: isDark
-            ? "radial-gradient(circle, rgba(56,189,248,0.25), transparent 70%)"
-            : "radial-gradient(circle, rgba(37,99,235,0.25), transparent 70%)",
+          background:
+            "radial-gradient(circle, rgba(56,189,248,0.25), transparent 70%)",
           transform: "translate(-50%, -50%)",
         }}
         animate={{ scale: [1, 1.1, 1], opacity: [0.1, 0.25, 0.1] }}

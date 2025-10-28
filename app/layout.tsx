@@ -1,6 +1,6 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import { ThemeProvider } from "next-themes";
 import "./globals.css";
+import ClientLayout from "@/components/ClientLayout";
 
 export const metadata = {
   metadataBase: new URL("https://dctrades.vercel.app"),
@@ -58,23 +58,10 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en" suppressHydrationWarning>
-        <body
-          className={`min-h-screen font-inter antialiased transition-all duration-500
-            bg-[#F9FAFB] text-[#1E293B]
-            dark:bg-[#0B0F14] dark:text-gray-100`}
-        >
-          {/* ✅ Dark mode as default */}
-          <ThemeProvider
-            attribute="class"
-            defaultTheme="dark" // 🌙 Default is now dark
-            enableSystem={false} // ignore system preference
-            disableTransitionOnChange
-          >
-            <main className="relative flex flex-col min-h-screen overflow-x-hidden">
-              {children}
-            </main>
-          </ThemeProvider>
+      <html lang="en">
+        <body className="min-h-screen font-inter antialiased bg-[#0B0F14] text-gray-100 overflow-x-hidden">
+          {/* ✅ Client logic in separate component */}
+          <ClientLayout>{children}</ClientLayout>
         </body>
       </html>
     </ClerkProvider>

@@ -1,7 +1,6 @@
 "use client";
 
 import { JSX, useEffect, useMemo, useState } from "react";
-import { useTheme } from "next-themes";
 import {
   Skull,
   Trophy,
@@ -24,9 +23,6 @@ export default function PerformanceOverview({
   accountSize,
   targetPercent,
 }: Props) {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
-
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -37,7 +33,7 @@ export default function PerformanceOverview({
     }
   }, [JSON.stringify(trades)]);
 
-  // 🧮 Stats Calculation
+  // === Stats Calculation ===
   const stats = useMemo(() => {
     if (!trades || trades.length === 0)
       return {
@@ -45,81 +41,55 @@ export default function PerformanceOverview({
         wins: 0,
         losses: 0,
         winRate: 0,
-        avgRR: 0,
+        bestPair: "—",
         best: 0,
         worst: 0,
         progress: 0,
       };
 
     const total = trades.length;
-    const profits = trades.filter((t) => t.profitLoss > 0 || t.result > 0);
-    const losses = trades.filter((t) => t.profitLoss < 0 || t.result < 0);
-    const winRate = ((profits.length / total) * 100).toFixed(1);
+    const profits = trades.filter((t) => (t.result ?? 0) > 0);
+    const losses = trades.filter((t) => (t.result ?? 0) < 0);
+    const winRate = total > 0 ? ((profits.length / total) * 100).toFixed(1) : "0.0";
 
-    // 🧠 Avg R:R — skips invalid trades
-    const rrList = trades
-      .map((t) => {
-        const entry = Number(t.entry);
-        const sl = Number(t.stopLoss);
-        const tp = Number(t.takeProfit);
-        if (!entry || !sl || !tp || entry === sl) return null;
+    // Best pair
+    const pairProfits: Record<string, number> = {};
+    trades.forEach((t) => {
+      const pair = t.pair || "Unknown";
+      const profit = Number(t.result ?? 0);
+      pairProfits[pair] = (pairProfits[pair] || 0) + profit;
+    });
+    const sorted = Object.entries(pairProfits).sort((a, b) => b[1] - a[1]);
+    const bestPair = sorted[0]?.[1] > 0 ? sorted[0][0] : "—";
 
-        const risk = Math.abs(sl - entry);
-        const reward = Math.abs(tp - entry);
-        return risk > 0 ? reward / risk : null;
-      })
-      .filter((v): v is number => !!v && isFinite(v));
-
-    const avgRR =
-      rrList.length > 0
-        ? (rrList.reduce((a, b) => a + b, 0) / rrList.length).toFixed(2)
-        : "—";
-
-    const profitList = trades.map((t) => t.profitLoss ?? t.result ?? 0);
-    const best = Math.max(...profitList);
-    const worst = Math.min(...profitList);
+    const profitsList = trades.map((t) => Number(t.result ?? 0));
+    const best = Math.max(...profitsList.filter((v) => v > 0), 0);
+    const worst = Math.min(...profitsList.filter((v) => v < 0), 0);
 
     const acc = Number(accountSize) || 0;
     const target = Number(targetPercent) || 0;
-    const totalGain = profitList.reduce((a, b) => a + b, 0);
-    const progress = acc ? (totalGain / (acc * (target / 100))) * 100 : 0;
+    const totalGain = profitsList.reduce((a, b) => a + b, 0);
+    const targetValue = acc * (target / 100);
+    const progress = targetValue ? (totalGain / targetValue) * 100 : 0;
 
-    return {
-      total,
-      wins: profits.length,
-      losses: losses.length,
-      winRate,
-      avgRR,
-      best,
-      worst,
-      progress,
-    };
+    return { total, wins: profits.length, losses: losses.length, winRate, bestPair, best, worst, progress };
   }, [trades, accountSize, targetPercent]);
 
-  const palette = isDark
-    ? {
-        bg: "#0B0F14",
-        border: "rgba(56,189,248,0.15)",
-        text: "#E2E8F0",
-        accent: "#38BDF8",
-        shadow: "rgba(56,189,248,0.25)",
-        profit: "#22C55E",
-        loss: "#EF4444",
-      }
-    : {
-        bg: "#FFFFFF",
-        border: "rgba(37,99,235,0.15)",
-        text: "#1E293B",
-        accent: "#2563EB",
-        shadow: "rgba(37,99,235,0.25)",
-        profit: "#16A34A",
-        loss: "#DC2626",
-      };
+  // === Neon palette ===
+  const palette = {
+    bg: "linear-gradient(145deg, #0B0F14, #111827)",
+    border: "rgba(56,189,248,0.25)",
+    text: "#E2E8F0",
+    accent: "#38BDF8",
+    shadow: "0 0 25px rgba(56,189,248,0.15)",
+    profit: "#00FF88",
+    loss: "#FF4D4D",
+  };
 
   const getBarColor = (value: number) =>
     value >= 0
-      ? "linear-gradient(90deg, #38BDF8, #22C55E, #4ADE80)"
-      : "linear-gradient(90deg, #F87171, #EF4444, #DC2626)";
+      ? "linear-gradient(90deg, #00FFD1, #00FF88, #38BDF8)"
+      : "linear-gradient(90deg, #FF6B6B, #FF4D4D, #DC2626)";
 
   return (
     <div
@@ -127,73 +97,31 @@ export default function PerformanceOverview({
         refreshing ? "opacity-70 scale-[0.99]" : "opacity-100 scale-100"
       }`}
       style={{
-        background: isDark
-          ? "linear-gradient(135deg, #0B0F14, #111827)"
-          : "linear-gradient(135deg, #FFFFFF, #E0F2FE)",
+        background: palette.bg,
         borderColor: palette.border,
-        boxShadow: `0 2px 8px ${palette.shadow}`,
+        boxShadow: palette.shadow,
         color: palette.text,
       }}
     >
-      {/* === Header === */}
+      {/* Header */}
       <div className="flex items-center justify-between mb-5">
-        <h2
-          className="text-xl font-bold flex items-center gap-2"
-          style={{ color: palette.accent }}
-        >
+        <h2 className="text-xl font-bold flex items-center gap-2 text-sky-400">
           <BarChart2 size={20} /> Performance Overview
         </h2>
         {refreshing && <Loader2 className="animate-spin text-sky-400 w-5 h-5" />}
       </div>
 
-     {/* === Stats === */}
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          <StatCard icon={<Activity size={18} />} label="Total Trades" value={stats.total} color={palette.text} />
-          <StatCard icon={<TrendingUp size={18} />} label="Wins" value={stats.wins} color={palette.profit} />
-          <StatCard icon={<TrendingDown size={18} />} label="Losses" value={stats.losses} color={palette.loss} />
-          <StatCard icon={<Trophy size={18} />} label="Win Rate" value={`${stats.winRate}%`} color={palette.profit} />
-          
-        {/* 💎 Dynamic Avg R:R */}
-        <div className="relative overflow-hidden rounded-lg">
-          <StatCard
-            icon={<BarChart2 size={18} />}
-            label="Avg R:R"
-            value={stats.avgRR}
-            color={palette.accent}
-          />
+      {/* Stats Grid */}
+      <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <StatCard icon={<Activity size={18} />} label="Total Trades" value={stats.total} color={palette.text} />
+        <StatCard icon={<TrendingUp size={18} />} label="Wins" value={stats.wins} color={palette.profit} />
+        <StatCard icon={<TrendingDown size={18} />} label="Losses" value={stats.losses} color={palette.loss} />
+        <StatCard icon={<Trophy size={18} />} label="Win Rate" value={`${stats.winRate}%`} color={palette.profit} />
+        <StatCard icon={<BarChart2 size={18} />} label="Best Pair" value={stats.bestPair} color={palette.accent} />
+        <StatCard icon={<Target size={18} />} label="Profit Target" value={`${Math.abs(stats.progress).toFixed(1)}%`} color={palette.accent} />
+      </div>
 
-          {/* === Background fill bar === */}
-          <div
-            className="absolute bottom-0 left-0 h-[3px] transition-all duration-700 ease-in-out"
-            style={{
-              width: `${Math.min(Number(stats.avgRR) * 33, 100)}%`, // e.g. 3.0 RR ≈ full
-              background:
-                Number(stats.avgRR) <= 0
-                  ? "gray"
-                  : Number(stats.avgRR) >= 3
-                  ? "#38BDF8"
-                  : `linear-gradient(90deg, gray, #38BDF8 ${Number(
-                      stats.avgRR
-                    ) * 33}%)`,
-              boxShadow:
-                Number(stats.avgRR) >= 3
-                  ? "0 0 12px #38BDF8"
-                  : "0 0 4px rgba(156,163,175,0.5)",
-            }}
-          />
-        </div>
-
-
-  <StatCard
-    icon={<Target size={18} />}
-    label="Profit Target"
-    value={`${Math.abs(stats.progress).toFixed(1)}%`}
-    color={palette.accent}
-  />
-</div>
-
-
-      {/* === Best / Worst === */}
+      {/* Best / Worst */}
       <div className="mt-6 flex flex-wrap gap-6 text-sm sm:text-base">
         <div className="flex items-center gap-2">
           <Trophy className="text-yellow-400 w-5 h-5" />
@@ -202,17 +130,16 @@ export default function PerformanceOverview({
             {stats.best > 0 ? `+${stats.best.toFixed(2)}` : "—"}
           </span>
         </div>
-
         <div className="flex items-center gap-2">
           <Skull className="text-rose-500 w-5 h-5" />
           <span className="font-semibold">Worst Trade:</span>
           <span style={{ color: palette.loss }}>
-            {stats.worst < 0 ? `${stats.worst.toFixed(2)}` : "—"}
+            {stats.worst < 0 ? stats.worst.toFixed(2) : "—"}
           </span>
         </div>
       </div>
 
-      {/* === Progress Bar === */}
+      {/* Progress Bar */}
       <div className="mt-6">
         <div className="flex justify-between text-sm font-medium mb-1">
           <span>Performance vs Target</span>
@@ -231,7 +158,7 @@ export default function PerformanceOverview({
         <div
           className="relative h-5 w-full rounded-full overflow-hidden border backdrop-blur-sm"
           style={{
-            background: isDark ? "#0F172A" : "#E2E8F0",
+            background: "#0F172A",
             borderColor: palette.border,
           }}
         >
@@ -240,12 +167,14 @@ export default function PerformanceOverview({
             style={{
               width: `${Math.min(Math.abs(stats.progress), 100)}%`,
               background: getBarColor(stats.progress),
-              boxShadow: `0 0 10px ${stats.progress >= 0 ? palette.profit : palette.loss}`,
+              boxShadow: `0 0 10px ${
+                stats.progress >= 0 ? palette.profit : palette.loss
+              }`,
             }}
           />
         </div>
 
-        <div className="flex justify-between text-xs mt-1 text-gray-500 font-semibold">
+        <div className="flex justify-between text-xs mt-1 text-gray-400 font-semibold">
           <span>0%</span>
           <span>
             {stats.progress >= 0
@@ -259,7 +188,7 @@ export default function PerformanceOverview({
   );
 }
 
-// 🧱 StatCard
+// === Stat Card ===
 function StatCard({
   icon,
   label,
@@ -275,11 +204,11 @@ function StatCard({
     <div
       className="flex items-center gap-3 p-3 rounded-lg border shadow-sm backdrop-blur-md transition-all hover:scale-[1.03] hover:shadow-lg"
       style={{
-        borderColor: "rgba(255,255,255,0.1)",
+        borderColor: "rgba(56,189,248,0.25)",
         background: "rgba(56,189,248,0.05)",
       }}
     >
-      <div className="p-2 rounded-md bg-black/10 text-sky-400">{icon}</div>
+      <div className="p-2 rounded-md bg-black/20 text-sky-400">{icon}</div>
       <div>
         <p className="text-sm opacity-80">{label}</p>
         <p className="font-bold text-lg" style={{ color }}>

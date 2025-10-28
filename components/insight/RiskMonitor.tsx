@@ -13,9 +13,9 @@ type RiskReport = {
 };
 
 export default function RiskMonitor({ report }: { report?: RiskReport }) {
-  // ✅ Safely handle undefined or missing props
+  // 🧠 Safe defaults
   const dailyPnL = Number(report?.dailyPnL ?? 0);
-  const goal = Number(report?.goal ?? 1); // prevent division by zero
+  const goal = Math.max(Number(report?.goal ?? 1), 1); // avoid /0
   const winRate = Number(report?.winRate ?? 0);
   const maxDrawdown = Number(report?.maxDrawdown ?? 0);
   const totalTrades = Number(report?.totalTrades ?? 0);
@@ -24,85 +24,132 @@ export default function RiskMonitor({ report }: { report?: RiskReport }) {
   const isOverLimit = dailyPnL <= -goal;
   const safe = dailyPnL > -goal / 2 && dailyPnL >= 0;
 
-  // Dynamic colors
+  // 🌈 Dynamic color glow
   const barColor = isOverLimit
     ? "#EF4444"
     : safe
     ? "#22C55E"
     : "#FACC15";
 
+  // 🎨 DC Trades Neon Palette
+  const palette = {
+    bg: "linear-gradient(145deg, rgba(11,15,20,0.95), rgba(17,24,39,0.95))",
+    border: "rgba(56,189,248,0.25)",
+    text: "#E2E8F0",
+    accent: "#38BDF8",
+    shadow: "0 0 25px rgba(56,189,248,0.15)",
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="p-5 rounded-2xl border shadow-lg backdrop-blur-xl bg-gradient-to-br from-slate-900/30 to-cyan-900/10 border-cyan-500/20"
+      className="p-6 rounded-2xl border shadow-lg backdrop-blur-xl transition-all"
+      style={{
+        background: palette.bg,
+        borderColor: palette.border,
+        boxShadow: palette.shadow,
+        color: palette.text,
+      }}
     >
-      <h2 className="font-semibold text-lg text-sky-300 mb-3 flex items-center gap-2">
+      {/* === Header === */}
+      <h2 className="font-semibold text-lg flex items-center gap-2 mb-5 bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">
         📊 Live Risk Monitor
       </h2>
 
-      {/* Progress bar */}
-      <div className="mb-4">
-        <div className="flex justify-between text-xs mb-1">
-          <span className="text-cyan-300">Daily PnL:</span>
+      {/* === Risk Bar === */}
+      <div className="mb-5">
+        <div className="flex justify-between text-xs mb-2">
+          <span className="text-sky-300">Daily PnL:</span>
           <span
             className={`font-semibold ${
-              dailyPnL >= 0 ? "text-green-400" : "text-red-400"
+              dailyPnL >= 0 ? "text-emerald-400" : "text-rose-400"
             }`}
           >
             ${dailyPnL.toFixed(2)}
           </span>
         </div>
-        <div className="h-3 bg-slate-800 rounded-full overflow-hidden">
+
+        <div
+          className="relative h-3 rounded-full overflow-hidden border backdrop-blur-sm"
+          style={{
+            background: "rgba(255,255,255,0.06)",
+            borderColor: "rgba(56,189,248,0.15)",
+          }}
+        >
           <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${riskUsed}%`, backgroundColor: barColor }}
-            transition={{ duration: 0.6 }}
             className="h-full rounded-full"
+            style={{
+              width: `${riskUsed}%`,
+              background: `linear-gradient(90deg, ${barColor}, #38BDF8)`,
+              boxShadow: `0 0 12px ${barColor}`,
+            }}
+            initial={{ width: 0 }}
+            animate={{ width: `${riskUsed}%` }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
           />
         </div>
-        <div className="text-xs text-sky-200 mt-1">
+
+        <div className="text-xs text-slate-400 mt-2">
           {isOverLimit
             ? "⚠️ Daily risk limit breached!"
             : `Using ${riskUsed.toFixed(1)}% of max loss ($${goal})`}
         </div>
       </div>
 
-      {/* Stats summary */}
-      <div className="grid grid-cols-3 gap-4 text-center mt-5">
-        <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-700/30">
-          <TrendingUp className="mx-auto text-green-400" />
-          <div className="text-xs mt-1 text-sky-200">Win Rate</div>
-          <div className="text-base font-semibold text-green-300">
+      {/* === Mini Stats === */}
+      <div className="grid grid-cols-3 gap-4 mt-6">
+        {/* Win Rate */}
+        <div className="p-3 rounded-xl border text-center transition-all hover:scale-105"
+          style={{
+            borderColor: "rgba(56,189,248,0.15)",
+            background: "rgba(17,24,39,0.7)",
+            boxShadow: "0 0 15px rgba(56,189,248,0.05)",
+          }}>
+          <TrendingUp className="mx-auto text-emerald-400" />
+          <p className="text-xs mt-1 text-slate-400">Win Rate</p>
+          <p className="text-base font-semibold text-emerald-300">
             {winRate.toFixed(1)}%
-          </div>
+          </p>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-700/30">
+        {/* Drawdown */}
+        <div className="p-3 rounded-xl border text-center transition-all hover:scale-105"
+          style={{
+            borderColor: "rgba(56,189,248,0.15)",
+            background: "rgba(17,24,39,0.7)",
+            boxShadow: "0 0 15px rgba(56,189,248,0.05)",
+          }}>
           <AlertTriangle className="mx-auto text-yellow-400" />
-          <div className="text-xs mt-1 text-sky-200">Drawdown</div>
-          <div className="text-base font-semibold text-yellow-300">
+          <p className="text-xs mt-1 text-slate-400">Drawdown</p>
+          <p className="text-base font-semibold text-yellow-300">
             {maxDrawdown.toFixed(1)}%
-          </div>
+          </p>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-900/40 border border-slate-700/30">
+        {/* Trades */}
+        <div className="p-3 rounded-xl border text-center transition-all hover:scale-105"
+          style={{
+            borderColor: "rgba(56,189,248,0.15)",
+            background: "rgba(17,24,39,0.7)",
+            boxShadow: "0 0 15px rgba(56,189,248,0.05)",
+          }}>
           <TrendingDown className="mx-auto text-cyan-400" />
-          <div className="text-xs mt-1 text-sky-200">Trades</div>
-          <div className="text-base font-semibold text-cyan-300">
+          <p className="text-xs mt-1 text-slate-400">Trades</p>
+          <p className="text-base font-semibold text-cyan-300">
             {totalTrades}
-          </div>
+          </p>
         </div>
       </div>
 
-      {/* Final summary note */}
-      <div className="mt-4 text-sm text-center opacity-75 text-sky-100">
+      {/* === Footer Note === */}
+      <div className="mt-5 text-sm text-center text-sky-300/80 italic">
         {isOverLimit
-          ? "🚨 You’ve exceeded your risk limit. Stop trading for the day."
+          ? "🚨 You've exceeded your daily risk limit. Stop trading for the day."
           : safe
-          ? "✅ You’re within safe risk range. Keep executing with discipline."
-          : "⚠️ Watch out — you’re nearing your daily max loss threshold."}
+          ? "✅ Safe zone. Maintain discipline and trade your plan."
+          : "⚠️ Caution — nearing daily drawdown limit."}
       </div>
     </motion.div>
   );

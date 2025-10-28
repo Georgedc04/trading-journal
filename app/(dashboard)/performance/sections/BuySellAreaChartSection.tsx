@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
 import {
   AreaChart,
@@ -14,37 +13,21 @@ import {
   Legend,
 } from "recharts";
 import { TrendingUp, TrendingDown } from "lucide-react";
-import useTrades from "../hook/useTrades"; // ✅ shared cached hook
+import useTrades from "../hook/useTrades";
 
 export default function BuySellAreaChartSection() {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
-  const { trades, loading } = useTrades(); // ⚡ instantly loads cached data
+  const { trades, loading } = useTrades();
 
-  // 🎨 Theme palette
-  const palette = useMemo(
-    () =>
-      isDark
-        ? {
-            bg: "linear-gradient(135deg, #0B0F14, #111827)",
-            border: "rgba(56,189,248,0.25)",
-            text: "#E2E8F0",
-            buy: "#22C55E",
-            sell: "#EF4444",
-            grid: "rgba(255,255,255,0.1)",
-            shadow: "0 8px 25px rgba(56,189,248,0.15)",
-          }
-        : {
-            bg: "linear-gradient(135deg, #FFFFFF, #E0F2FE)",
-            border: "rgba(37,99,235,0.25)",
-            text: "#1E293B",
-            buy: "#16A34A",
-            sell: "#DC2626",
-            grid: "rgba(0,0,0,0.1)",
-            shadow: "0 8px 25px rgba(37,99,235,0.1)",
-          },
-    [isDark]
-  );
+  // 🎨 Fixed dark theme palette
+  const palette = {
+    bg: "linear-gradient(135deg, #0B0F14, #111827)",
+    border: "rgba(56,189,248,0.25)",
+    text: "#E2E8F0",
+    buy: "#22C55E",
+    sell: "#EF4444",
+    grid: "rgba(255,255,255,0.08)",
+    shadow: "0 8px 25px rgba(56,189,248,0.15)",
+  };
 
   // 🧮 Compute chart data
   const chartData = useMemo(() => {
@@ -70,13 +53,14 @@ export default function BuySellAreaChartSection() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
       viewport={{ once: true }}
-      className="w-full max-w-5xl mx-auto rounded-2xl p-6 border shadow-md backdrop-blur-md mt-10"
+      className="w-full max-w-5xl mx-auto rounded-2xl p-6 border shadow-md mt-10"
       style={{
         background: palette.bg,
         borderColor: palette.border,
         boxShadow: palette.shadow,
       }}
     >
+      {/* === Header === */}
       <div className="flex items-center gap-2 mb-4">
         <TrendingUp size={22} color={palette.buy} />
         <TrendingDown size={22} color={palette.sell} />
@@ -85,22 +69,22 @@ export default function BuySellAreaChartSection() {
         </h2>
       </div>
 
-      {/* ⚡ Skeleton shimmer for fast UX */}
+      {/* === Chart Section === */}
       {loading ? (
-        <div className="h-[350px] w-full rounded-xl animate-pulse bg-gradient-to-r from-slate-200/10 to-slate-400/20" />
+        <div className="h-[350px] w-full rounded-xl animate-pulse bg-gradient-to-r from-slate-800/20 to-slate-700/20" />
       ) : chartData.length === 0 ? (
-        <p className="text-center text-sm opacity-70">No trade data available.</p>
+        <p className="text-center text-sm text-slate-400">No trade data available.</p>
       ) : (
         <div className="w-full h-[350px]">
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData}>
               <defs>
                 <linearGradient id="buyGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={palette.buy} stopOpacity={0.6} />
+                  <stop offset="0%" stopColor={palette.buy} stopOpacity={0.7} />
                   <stop offset="100%" stopColor={palette.buy} stopOpacity={0.05} />
                 </linearGradient>
                 <linearGradient id="sellGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor={palette.sell} stopOpacity={0.6} />
+                  <stop offset="0%" stopColor={palette.sell} stopOpacity={0.7} />
                   <stop offset="100%" stopColor={palette.sell} stopOpacity={0.05} />
                 </linearGradient>
               </defs>
@@ -108,20 +92,30 @@ export default function BuySellAreaChartSection() {
               <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
               <XAxis
                 dataKey="date"
-                stroke={palette.text}
                 tick={{ fill: palette.text, fontSize: 12 }}
                 tickMargin={8}
+                axisLine={{ stroke: "rgba(56,189,248,0.2)" }}
               />
-              <YAxis stroke={palette.text} tick={{ fill: palette.text, fontSize: 12 }} />
+              <YAxis
+                tick={{ fill: palette.text, fontSize: 12 }}
+                axisLine={{ stroke: "rgba(56,189,248,0.2)" }}
+              />
               <Tooltip
                 contentStyle={{
-                  background: isDark ? "#1E293B" : "#F9FAFB",
+                  background: "rgba(15,23,42,0.95)",
                   border: `1px solid ${palette.border}`,
                   borderRadius: "10px",
                   color: palette.text,
+                  boxShadow: "0 4px 20px rgba(56,189,248,0.15)",
                 }}
               />
-              <Legend />
+              <Legend
+                verticalAlign="top"
+                height={30}
+                wrapperStyle={{ color: "#CBD5E1", fontSize: 13 }}
+              />
+
+              {/* === Buy Line === */}
               <Area
                 type="monotone"
                 dataKey="buys"
@@ -131,6 +125,8 @@ export default function BuySellAreaChartSection() {
                 strokeWidth={2}
                 activeDot={{ r: 5 }}
               />
+
+              {/* === Sell Line === */}
               <Area
                 type="monotone"
                 dataKey="sells"

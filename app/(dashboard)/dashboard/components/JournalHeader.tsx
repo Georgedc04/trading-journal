@@ -1,8 +1,8 @@
 "use client";
+
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { Trash2, PlusCircle, Settings, Edit3, X } from "lucide-react";
-import { useTheme } from "next-themes";
 import JournalModal from "./JournalModal";
 
 export default function JournalHeader({
@@ -14,12 +14,20 @@ export default function JournalHeader({
   setToast,
   loading = false,
 }: any) {
-  const { theme } = useTheme();
   const [showPopup, setShowPopup] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editName, setEditName] = useState("");
+
+  const palette = {
+    bg: "linear-gradient(145deg, #0B0F14, #111827)",
+    card: "#111827",
+    text: "#E2E8F0",
+    accent: "#38BDF8",
+    border: "rgba(56,189,248,0.25)",
+    shadow: "0 0 25px rgba(56,189,248,0.15)",
+  };
 
   // 🗑️ Delete Journal
   const handleDeleteJournal = async (id: number) => {
@@ -32,7 +40,6 @@ export default function JournalHeader({
 
       const remaining = journals.filter((j: any) => j.id !== id);
       setSelectedJournal(remaining.length > 0 ? remaining[0].id : null);
-
       setToast("🗑️ Journal deleted!");
       setShowPopup(false);
     } catch (err) {
@@ -46,7 +53,6 @@ export default function JournalHeader({
   // ✏️ Edit Journal
   const handleEditJournal = async () => {
     if (!editName.trim() || !selectedJournal) return alert("Enter a new name");
-
     try {
       setSaving(true);
       const res = await fetch(`/api/journals/${selectedJournal}`, {
@@ -67,56 +73,46 @@ export default function JournalHeader({
     }
   };
 
-  // 🎨 Better color system
-  const isDark = theme === "dark";
-  const textColor = isDark ? "text-gray-100" : "text-gray-900";
-  const bgColor = isDark ? "bg-[#101826]" : "bg-white";
-  const cardBg = isDark ? "bg-[#182030]" : "bg-white";
-  const inputBg = isDark ? "bg-[#24324d]" : "bg-gray-100";
-  const borderColor = isDark ? "border-gray-600" : "border-gray-300";
-
   return (
-    <header className="flex flex-col gap-4 w-full relative">
+    <header className="flex flex-col gap-4 w-full relative text-slate-200">
       {/* Greeting */}
-    <motion.div
+      <motion.div
         initial={{ opacity: 0, y: -10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
         className="flex flex-col"
-        >
+      >
         <h1 className="text-2xl font-bold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">
-            Welcome back, {user?.firstName || "Trader"} 👋
+          Welcome back, {user?.firstName || "Trader"} 👋
         </h1>
 
         {selectedJournal && (
-            <motion.p
+          <motion.p
             initial={{ opacity: 0, y: 5 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4 }}
             className="text-sm sm:text-base mt-1 text-gray-400"
-            >
+          >
             Active Journal:{" "}
             <span className="font-semibold text-sky-400">
-                {(() => {
+              {(() => {
                 const current = journals.find((j: any) => j.id === selectedJournal);
                 if (!current) return "Unknown";
                 const account = current.accountName ? ` (${current.accountName})` : "";
                 return `${current.name}${account}`;
-                })()}
+              })()}
             </span>
-            </motion.p>
+          </motion.p>
         )}
-        </motion.div>
-
+      </motion.div>
 
       {/* Button */}
       <div className="flex items-center gap-2">
         <button
           onClick={() => setShowPopup(true)}
-          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium shadow transition-all duration-200"
+          className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 hover:opacity-90 text-white text-sm font-medium shadow-md transition-all"
         >
-          <Settings size={16} />
-          Journal Options
+          <Settings size={16} /> Journal Options
         </button>
       </div>
 
@@ -131,24 +127,21 @@ export default function JournalHeader({
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm"
           >
             <div
-              className={`${cardBg} ${textColor} ${borderColor} border rounded-2xl shadow-lg 
-                w-[95%] max-w-[380px] p-5 flex flex-col gap-4 transition-all duration-300 
-                scale-100 hover:scale-[1.01]`}
-                style={{
-                    boxShadow: isDark
-                    ? "0 8px 20px rgba(0,0,0,0.5)"
-                    : "0 6px 16px rgba(0,0,0,0.1)",
-                }}>
-
-              <h2 className="text-lg font-semibold text-center mb-2">
-                <span className="font-semibold text-sky-400">
+              className="rounded-2xl border shadow-lg w-[95%] max-w-[380px] p-5 flex flex-col gap-4 transition-all duration-300 scale-100 hover:scale-[1.01]"
+              style={{
+                background: palette.card,
+                borderColor: palette.border,
+                color: palette.text,
+                boxShadow: palette.shadow,
+              }}
+            >
+              <h2 className="text-lg font-semibold text-center mb-2 text-sky-400">
                 {(() => {
-                const current = journals.find((j: any) => j.id === selectedJournal);
-                if (!current) return "Unknown";
-                const account = current.accountName ? ` (${current.accountName})` : "";
-                return `${current.name}${account}`;
+                  const current = journals.find((j: any) => j.id === selectedJournal);
+                  if (!current) return "Unknown";
+                  const account = current.accountName ? ` (${current.accountName})` : "";
+                  return `${current.name}${account}`;
                 })()}
-            </span>
               </h2>
 
               {/* Dropdown */}
@@ -157,36 +150,14 @@ export default function JournalHeader({
                   <select
                     value={selectedJournal || ""}
                     onChange={(e) => setSelectedJournal(Number(e.target.value))}
-                    className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium shadow transition-all `}
+                    className="w-full px-4 py-2 rounded-lg bg-[#0F172A] border border-sky-500/30 text-slate-200 text-sm focus:ring-2 focus:ring-sky-400"
                   >
                     {journals.map((j: any) => (
-                      <option
-                        key={j.id}
-                        value={j.id}
-                        className={`${
-                          isDark
-                            ? "bg-[#24324d] text-gray-100"
-                            : "bg-white text-gray-900"
-                        }`}
-                      >
+                      <option key={j.id} value={j.id} className="bg-slate-800 text-slate-100">
                         {j.name}
                       </option>
                     ))}
                   </select>
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className="absolute right-3 top-3 w-4 h-4 text-gray-400 pointer-events-none"
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
                 </div>
               ) : (
                 <p className="text-sm italic text-center text-gray-400">
@@ -201,7 +172,7 @@ export default function JournalHeader({
                     setShowModal(true);
                     setShowPopup(false);
                   }}
-                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-sky-500 hover:bg-sky-600 text-white text-sm font-medium shadow transition-all"
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-sky-500 to-cyan-400 hover:opacity-90 text-white text-sm font-medium shadow transition-all"
                 >
                   <PlusCircle size={16} /> Add Journal
                 </button>
@@ -209,29 +180,21 @@ export default function JournalHeader({
                 <button
                   onClick={() => {
                     if (!selectedJournal) return;
-                    const current = journals.find(
-                      (j: any) => j.id === selectedJournal
-                    );
+                    const current = journals.find((j: any) => j.id === selectedJournal);
                     setEditName(current?.name || "");
                     setShowEditModal(true);
                     setShowPopup(false);
                   }}
                   disabled={!selectedJournal}
-                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow transition-all disabled:opacity-50 ${
-                    isDark
-                      ? "bg-yellow-400 hover:bg-yellow-500 text-black"
-                      : "bg-yellow-400 hover:bg-yellow-500 text-black"
-                  }`}
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg text-sm font-medium shadow transition-all bg-yellow-400 hover:bg-yellow-500 text-black disabled:opacity-50"
                 >
                   <Edit3 size={16} /> Edit Journal
                 </button>
 
                 <button
-                  onClick={() =>
-                    selectedJournal && handleDeleteJournal(selectedJournal)
-                  }
+                  onClick={() => selectedJournal && handleDeleteJournal(selectedJournal)}
                   disabled={!selectedJournal || saving}
-                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-red-500 hover:bg-sky-600/50 text-red-500 text-sm font-medium shadow transition-all`}
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-rose-600 to-red-500 hover:opacity-90 text-white text-sm font-medium shadow transition-all"
                 >
                   <Trash2 size={16} />
                   {saving ? "Deleting..." : "Delete Journal"}
@@ -239,11 +202,7 @@ export default function JournalHeader({
 
                 <button
                   onClick={() => setShowPopup(false)}
-                  className={`flex items-center justify-center gap-2 px-4 py-2 rounded-lg border ${borderColor} ${
-                    isDark
-                      ? "hover:bg-[#24324d] text-gray-100"
-                      : "hover:bg-gray-100 text-gray-900"
-                  } text-sm font-medium transition-all`}
+                  className="flex items-center justify-center gap-2 px-4 py-2 rounded-lg border border-sky-400/30 hover:bg-sky-400/10 text-slate-200 text-sm font-medium transition-all"
                 >
                   <X size={16} /> Cancel
                 </button>
@@ -266,33 +225,35 @@ export default function JournalHeader({
       {showEditModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
           <div
-            className={`${cardBg} ${borderColor} border rounded-2xl shadow-2xl w-[90%] max-w-sm p-6 ${textColor}`}
+            className="border rounded-2xl shadow-2xl w-[90%] max-w-sm p-6"
+            style={{
+              background: palette.card,
+              borderColor: palette.border,
+              boxShadow: palette.shadow,
+              color: palette.text,
+            }}
           >
-            <h2 className="text-lg font-semibold mb-3 text-center">
+            <h2 className="text-lg font-semibold mb-3 text-center text-sky-400">
               Rename Journal
             </h2>
             <input
               type="text"
               value={editName}
               onChange={(e) => setEditName(e.target.value)}
-              className={`w-full p-2 mb-4 rounded-md border ${borderColor} ${inputBg} text-sm focus:ring-2 focus:ring-sky-500`}
+              className="w-full p-2 mb-4 rounded-md border border-sky-400/30 bg-[#0F172A] text-sm text-slate-200 focus:ring-2 focus:ring-sky-500"
               placeholder="Enter new name..."
             />
             <div className="flex justify-end gap-2">
               <button
                 onClick={() => setShowEditModal(false)}
-                className={`px-4 py-2 rounded-md border ${borderColor} ${
-                  isDark
-                    ? "hover:bg-[#24324d] text-gray-100"
-                    : "hover:bg-gray-100 text-gray-900"
-                }`}
+                className="px-4 py-2 rounded-md border border-sky-400/30 hover:bg-sky-400/10 text-slate-200"
               >
                 Cancel
               </button>
               <button
                 onClick={handleEditJournal}
                 disabled={saving}
-                className="px-4 py-2 bg-sky-500 hover:bg-sky-600 text-white rounded-md"
+                className="px-4 py-2 bg-gradient-to-r from-sky-500 to-cyan-400 hover:opacity-90 text-white rounded-md"
               >
                 {saving ? "Saving..." : "Save"}
               </button>

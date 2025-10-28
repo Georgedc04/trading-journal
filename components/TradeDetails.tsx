@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { AnimatePresence } from "framer-motion";
 import FullscreenImageViewer from "./FullImageViewer";
+
 export default function TradeDetails({ trade }: { trade: any }) {
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
   const { theme } = useTheme();
@@ -41,7 +42,9 @@ export default function TradeDetails({ trade }: { trade: any }) {
         shadow: "0 4px 25px rgba(56,189,248,0.15)",
       };
 
-  const profitColor = trade.result > 0 ? palette.profit : palette.loss;
+  // ✅ Safely convert trade.result to number
+  const result = Number(trade.result);
+  const profitColor = result > 0 ? palette.profit : palette.loss;
 
   const resolveImageUrl = (url?: string) => {
     if (!url) return null;
@@ -99,10 +102,11 @@ export default function TradeDetails({ trade }: { trade: any }) {
           label="Session"
           value={trade.session || "—"}
         />
+        {/* ✅ Fixed Result Handling */}
         <InfoItem
           icon={<DollarSign size={18} color={profitColor} />}
           label="Result"
-          value={`${trade.result > 0 ? "+" : ""}${trade.result.toFixed(2)} $`}
+          value={`${result > 0 ? "+" : ""}${!isNaN(result) ? result.toFixed(2) : "0.00"} $`}
           className="font-semibold"
           style={{ color: profitColor }}
         />

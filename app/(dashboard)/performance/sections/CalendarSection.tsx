@@ -1,6 +1,5 @@
 "use client";
 
-import { useTheme } from "next-themes";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { MapPin, Maximize2, X } from "lucide-react";
@@ -12,7 +11,6 @@ export default function CalendarSection({
   trades: { date: string; result: number; reason?: string }[];
   accountSize: number;
 }) {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [selectedTrade, setSelectedTrade] = useState<any | null>(null);
@@ -21,26 +19,16 @@ export default function CalendarSection({
   useEffect(() => setMounted(true), []);
   if (!mounted) return null;
 
-  const isDark = theme === "dark";
-  const palette = isDark
-    ? {
-        bg: "radial-gradient(circle at top left, #0F172A 0%, #020617 100%)",
-        card: "radial-gradient(circle at top right, #0F172A 0%, #020617 80%)",
-        border: "#000000",
-        text: "#E2E8F0",
-        accent: "#38BDF8",
-        profit: "#22C55E",
-        loss: "#EF4444",
-      }
-    : {
-        bg: "#f8fafc",
-        card: "#ffffff",
-        border: "#2563EB",
-        text: "#1E293B",
-        accent: "#2563EB",
-        profit: "#16A34A",
-        loss: "#DC2626",
-      };
+  // 🎨 Pure Dark Neon Theme
+  const palette = {
+    bg: "radial-gradient(circle at top left, #0B0F14 0%, #111827 100%)",
+    card: "linear-gradient(145deg, #0F172A 0%, #0B0F14 100%)",
+    border: "#000000",
+    text: "#E2E8F0",
+    accent: "#38BDF8",
+    profit: "#00FF88",
+    loss: "#FF4D4D",
+  };
 
   // --- Calendar setup ---
   const year = currentDate.getFullYear();
@@ -49,7 +37,7 @@ export default function CalendarSection({
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const monthName = currentDate.toLocaleString("default", { month: "long" });
 
-  // Group trades
+  // --- Group trades by date ---
   const tradesByDate: Record<string, any[]> = {};
   trades.forEach((t) => {
     const key = new Date(t.date).toDateString();
@@ -71,6 +59,7 @@ export default function CalendarSection({
       style={{
         borderColor: palette.border,
         background: palette.bg,
+        boxShadow: "0 0 25px rgba(56,189,248,0.1)",
       }}
     >
       {/* Weekday Header */}
@@ -81,7 +70,7 @@ export default function CalendarSection({
           style={{
             color: palette.accent,
             borderColor: palette.border,
-            background: isDark ? "#0F172A" : "#e2e8f0",
+            background: "rgba(56,189,248,0.05)",
           }}
         >
           {day}
@@ -91,24 +80,24 @@ export default function CalendarSection({
       {/* Day Cells */}
       {daysArray.map((day, i) => {
         const dateKey = day ? new Date(year, month, day).toDateString() : "";
-        const trades = tradesByDate[dateKey] || [];
+        const dayTrades = tradesByDate[dateKey] || [];
         const todayKey = new Date().toDateString();
         const isToday = dateKey === todayKey;
 
         return (
           <div
             key={i}
-            className="flex flex-col items-center justify-start border text-center relative transition-all duration-300 hover:scale-[1.02] overflow-hidden"
+            className="flex flex-col items-center justify-start border text-center relative transition-all duration-300 hover:scale-[1.03] overflow-hidden"
             style={{
               borderColor: palette.border,
               aspectRatio: "1 / 1",
               background: day ? palette.card : "transparent",
               boxShadow: isToday
-                ? `0  5px ${palette.accent}70, inset 0 0 6px ${palette.accent}50`
+                ? `0 0 15px ${palette.accent}40, inset 0 0 10px ${palette.accent}40`
                 : "none",
             }}
           >
-            {/* === Animated Pin for Today === */}
+            {/* 🔹 Animated Pin for Today */}
             {isToday && (
               <motion.div
                 className="absolute inset-0 flex items-center justify-center"
@@ -123,36 +112,24 @@ export default function CalendarSection({
                   ease: "easeInOut",
                 }}
               >
-               <MapPin
-                    className="
-                      text-blue-500 
-                      drop-shadow-sm
-                      w-4 h-4
-                      sm:w-4 sm:h-4
-                      md:w-6 md:h-6
-                      lg:w-7 lg:h-7
-                    "
-                    style={{
-                      color: palette.accent,
-                    }}
-                  />
+                <MapPin className="text-sky-400 w-6 h-6 drop-shadow-md" />
               </motion.div>
             )}
 
-            {/* === Day Number === */}
+            {/* 🔸 Day Number */}
             {day && (
-              <div className="text-[10px] sm:text-lg font-semibold mt-1 self-end pr-1 z-10">
+              <div className="text-[10px] sm:text-lg font-semibold mt-1 self-end pr-1 z-10 text-slate-300">
                 {day}
               </div>
             )}
 
-            {/* === Trade Tags === */}
-            <div className="flex flex-col items-center justify-center flex-1 gap-[2px] sm:gap-1 z-10">
-              {trades.map((trade, idx) => (
+            {/* 💹 Trade Tags */}
+            <div className="flex flex-col items-center justify-center flex-1 gap-[3px] z-10">
+              {dayTrades.map((trade, idx) => (
                 <motion.div
                   key={idx}
                   whileHover={{ scale: 1.05 }}
-                  className="text-[7px] sm:text-[9px] md:text-[10px] lg:text-xs px-[2px] sm:px-1.5 md:px-2 py-[1px] sm:py-[2px] rounded-md font-semibold cursor-pointer text-center leading-tight whitespace-nowrap"
+                  className="text-[8px] sm:text-xs px-1.5 py-[2px] rounded-md font-semibold cursor-pointer"
                   style={{
                     background:
                       trade.result > 0
@@ -181,44 +158,44 @@ export default function CalendarSection({
     </div>
   );
 
-  // --- Return Section ---
   return (
     <>
-      {/* === Calendar Card === */}
+      {/* 🗓 Calendar Card */}
       <motion.div
-        className="rounded-2xl p-3 sm:p-4 md:p-6 border shadow-lg w-full max-w-6xl mx-auto transition-all duration-300"
+        className="rounded-2xl p-4 sm:p-6 border shadow-lg w-full max-w-6xl mx-auto transition-all duration-300"
         style={{
           background: palette.card,
           borderColor: palette.border,
           color: palette.text,
+          boxShadow: "0 0 30px rgba(56,189,248,0.15)",
         }}
       >
         {/* Header */}
         <div
-          className="flex items-center justify-between border-b pb-2 mb-3"
+          className="flex items-center justify-between border-b pb-3 mb-4"
           style={{ borderColor: palette.border }}
         >
-          <h2 className="text-lg sm:text-xl md:text-2xl font-bold uppercase">
+          <h2 className="text-lg sm:text-xl md:text-2xl font-bold text-sky-400">
             {monthName} {year}
           </h2>
           <div className="flex gap-2">
             <button
               onClick={() => setCurrentDate(new Date(year, month - 1))}
-              className="px-2 py-1 border rounded text-xs sm:text-sm"
+              className="px-2 py-1 border rounded text-xs sm:text-sm hover:bg-sky-500/10"
               style={{ color: palette.accent, borderColor: palette.border }}
             >
               Prev
             </button>
             <button
               onClick={() => setCurrentDate(new Date(year, month + 1))}
-              className="px-2 py-1 border rounded text-xs sm:text-sm"
+              className="px-2 py-1 border rounded text-xs sm:text-sm hover:bg-sky-500/10"
               style={{ color: palette.accent, borderColor: palette.border }}
             >
               Next
             </button>
             <button
               onClick={() => setIsFullScreen(true)}
-              className="p-2 border rounded hover:scale-110 transition-transform"
+              className="p-2 border rounded hover:bg-sky-500/10"
               style={{ color: palette.accent, borderColor: palette.border }}
             >
               <Maximize2 size={18} />
@@ -229,7 +206,7 @@ export default function CalendarSection({
         <CalendarGrid />
       </motion.div>
 
-      {/* === Fullscreen Mode === */}
+      {/* 🔳 Fullscreen Calendar */}
       <AnimatePresence>
         {isFullScreen && (
           <motion.div
@@ -237,23 +214,12 @@ export default function CalendarSection({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            style={{
-              background: isDark
-                ? "rgba(0,0,0,0.9)"
-                : "rgba(255,255,255,0.9)",
-            }}
+            style={{ background: "rgba(0,0,0,0.9)" }}
           >
-            <div
-              className="relative w-full h-full flex items-center justify-center"
-              style={{ background: "transparent" }}
-            >
+            <div className="relative w-full h-full flex items-center justify-center">
               <button
                 onClick={() => setIsFullScreen(false)}
-                className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 rounded-full"
-                style={{
-                  color: palette.accent,
-                  background: "rgba(255,255,255,0.05)",
-                }}
+                className="absolute top-4 right-4 p-2 rounded-full bg-sky-400/10 text-sky-400 hover:scale-110 transition-transform"
               >
                 <X size={20} />
               </button>
@@ -266,7 +232,7 @@ export default function CalendarSection({
         )}
       </AnimatePresence>
 
-      {/* === Trade Modal === */}
+      {/* 💬 Trade Modal */}
       <AnimatePresence>
         {selectedTrade && (
           <motion.div
@@ -275,39 +241,29 @@ export default function CalendarSection({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSelectedTrade(null)}
-            style={{
-              background: isDark
-                ? "rgba(0,0,0,0.6)"
-                : "rgba(255,255,255,0.6)",
-            }}
+            style={{ background: "rgba(0,0,0,0.7)" }}
           >
             <motion.div
               onClick={(e) => e.stopPropagation()}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-[90%] max-w-md sm:max-w-lg rounded-2xl p-4 sm:p-8 border shadow-2xl relative"
+              className="w-[90%] max-w-md rounded-2xl p-6 border shadow-2xl relative"
               style={{
                 background: palette.card,
                 borderColor: palette.border,
                 color: palette.text,
+                boxShadow: "0 0 25px rgba(56,189,248,0.2)",
               }}
             >
               <button
                 onClick={() => setSelectedTrade(null)}
-                className="absolute top-3 right-3 p-2 rounded-full"
-                style={{
-                  color: palette.accent,
-                  background: "rgba(255,255,255,0.05)",
-                }}
+                className="absolute top-3 right-3 p-2 rounded-full bg-sky-400/10 text-sky-400"
               >
                 <X size={18} />
               </button>
 
-              <h2
-                className="text-lg sm:text-xl font-semibold mb-4 text-center"
-                style={{ color: palette.accent }}
-              >
+              <h2 className="text-xl font-semibold mb-4 text-center text-sky-400">
                 Trade Details
               </h2>
 
@@ -340,10 +296,10 @@ export default function CalendarSection({
                   <strong>Date:</strong>
                   <span>{selectedTrade.date}</span>
                 </div>
-                <div className="pt-2 border-t border-dashed">
+                <div className="pt-2 border-t border-dashed border-sky-400/30">
                   <strong>Reason:</strong>
                   <p className="mt-1 text-xs opacity-80 leading-relaxed">
-                    {selectedTrade.reason}
+                    {selectedTrade.reason || "No reason provided."}
                   </p>
                 </div>
               </div>

@@ -20,10 +20,10 @@ export async function POST(req: Request) {
       session,
       beforeImageUrl,
       afterImageUrl,
-      journalId, // ✅ added
+      journalId,
     } = data;
 
-    // ✅ 1. Validate required fields
+    // ✅ 1. Validate inputs
     if (
       !date ||
       !direction ||
@@ -40,15 +40,11 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ 2. Convert and validate journalId
+    // ✅ 2. Convert and verify journal
     const journalIdNum = Number(journalId);
     if (Number.isNaN(journalIdNum))
-      return NextResponse.json(
-        { error: "Invalid journalId" },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: "Invalid journalId" }, { status: 400 });
 
-    // ✅ 3. Check journal belongs to the user
     const journal = await prisma.journalAccount.findFirst({
       where: { id: journalIdNum, userId },
     });
@@ -59,25 +55,54 @@ export async function POST(req: Request) {
       );
 
     const numericAmount = Number(amount);
-    if (Number.isNaN(numericAmount)) {
+    if (Number.isNaN(numericAmount))
       return NextResponse.json({ error: "Invalid amount" }, { status: 400 });
-    }
 
-    // ✅ 4. Compute profit/loss
     const result =
       type === "loss" ? -Math.abs(numericAmount) : Math.abs(numericAmount);
 
-    // ✅ 5. Validate image URLs or Base64
+    // ✅ 3. Ensure user + plan exist
+    await prisma.user.upsert({
+      where: { id: userId },
+      update: {},
+      create: { id: userId },
+    });
+
+    let userPlan = await prisma.userPlan.findUnique({ where: { userId } });
+    if (!userPlan) {
+      userPlan = await prisma.userPlan.create({
+        data: { userId, plan: "FREE" },
+      });
+    }
+
+    // ✅ 4. Enforce plan limits
+    if (userPlan.plan === "FREE") {
+      const totalTrades = await prisma.trade.count({
+        where: { journal: { userId } },
+      });
+
+      if (totalTrades >= 10) {
+        return NextResponse.json(
+          {
+            error:
+              "Free plan limit reached (10 trades). Upgrade to add more trades.",
+          },
+          { status: 403 }
+        );
+      }
+    }
+
+    // ✅ 5. Validate images (Base64 or URL)
     const validBase64 = (val?: string | null) => {
       if (!val || val.trim() === "") return null;
       if (val.startsWith("data:image") || val.startsWith("http")) return val;
       return null;
     };
 
-    // ✅ 6. Create trade record
+    // ✅ 6. Create trade
     const trade = await prisma.trade.create({
       data: {
-        journalId: journalIdNum, // ✅ ensure Int type
+        journalId: journalIdNum,
         date: new Date(date),
         direction,
         quality,
@@ -102,13 +127,7 @@ export async function POST(req: Request) {
       },
     });
 
-    return NextResponse.json(trade, {
-      status: 201,
-      headers: {
-        "Cache-Control": "no-store",
-        "Content-Type": "application/json",
-      },
-    });
+    return NextResponse.json(trade, { status: 201 });
   } catch (err: any) {
     console.error("🔥 Error adding trade:", err);
     return NextResponse.json(

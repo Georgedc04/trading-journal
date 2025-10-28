@@ -1,27 +1,34 @@
 "use client";
 
-import { useSignIn } from "@clerk/nextjs";
-import { useTheme } from "next-themes";
-import { useState } from "react";
+import { useSignIn, useUser } from "@clerk/nextjs";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { getActiveColors } from "@/lib/colors";
 import Logo from "@/components/Logo";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
+import { FaArrowLeft } from "react-icons/fa";
 
 export default function SignInPage() {
   const { isLoaded, signIn, setActive } = useSignIn();
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
-  const colors = getActiveColors(isDark);
+  const { user, isSignedIn } = useUser();
+  const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // ✅ Redirect if user already signed in
+  useEffect(() => {
+    if (isSignedIn && user) {
+      const role = user.publicMetadata?.role;
+      router.replace(role === "ADMIN" ? "/admin" : "/dashboard");
+    }
+  }, [isSignedIn, user, router]);
+
   if (!isLoaded) return null;
 
-  // === Email Sign-In ===
+  // === Handle Email Sign-In ===
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -29,7 +36,9 @@ export default function SignInPage() {
     try {
       const result = await signIn.create({ identifier: email, password });
       await setActive({ session: result.createdSessionId });
-      window.location.href = "/dashboard";
+
+      const role = user?.publicMetadata?.role;
+      router.push(role === "ADMIN" ? "/admin" : "/dashboard");
     } catch {
       setError("Invalid credentials. Please try again.");
     } finally {
@@ -37,127 +46,102 @@ export default function SignInPage() {
     }
   };
 
-  // === OAuth Sign-In ===
+  // === Handle OAuth ===
   const handleOAuth = async (provider: "oauth_google" | "oauth_apple") => {
-    setError(null);
-    setLoading(true);
     try {
       await signIn.authenticateWithRedirect({
         strategy: provider,
-        redirectUrl: "/dashboard",
-        redirectUrlComplete: "/dashboard",
+        redirectUrl: "/post-login",
+        redirectUrlComplete: "/post-login",
       });
     } catch {
       setError("OAuth sign-in failed.");
-    } finally {
-      setLoading(false);
     }
   };
 
   return (
-    <div className={`min-h-screen flex items-center justify-center p-6 ${colors.bg}`}>
+    <div className="min-h-screen flex items-center justify-center p-6 bg-[#0B0F14] text-gray-100">
       <motion.div
         initial={{ opacity: 0, y: 25 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className={`max-w-md w-full rounded-3xl shadow-2xl p-8 backdrop-blur-2xl border ${colors.border}`}
+        className="max-w-md w-full rounded-3xl shadow-2xl p-8 border border-cyan-400/20 backdrop-blur-2xl"
         style={{
-          background: isDark
-            ? "linear-gradient(145deg, rgba(11,17,30,0.9), rgba(15,23,42,0.8))"
-            : "linear-gradient(145deg, rgba(255,255,255,0.9), rgba(240,249,255,0.85))",
-          boxShadow: `0 8px 25px ${colors.cardGlow}`,
+          background: "linear-gradient(145deg, #0C1118, #141C26)",
+          boxShadow: "0 4px 15px rgba(56,189,248,0.15)",
         }}
       >
+        {/* === Back Button === */}
+        <button
+          onClick={() => router.back()}
+          className="flex items-center gap-2 text-sm text-gray-400 hover:text-cyan-300 transition mb-6"
+        >
+          <FaArrowLeft className="text-xs" />
+          Back
+        </button>
+
         {/* === Logo === */}
         <div className="flex justify-center mb-6">
-          <Logo isDark={isDark} />
+          <Logo />
         </div>
 
         {/* === Header === */}
-        <h1 className={`text-2xl font-semibold text-center ${colors.text}`}>
+        <h1 className="text-2xl font-semibold text-center text-cyan-300">
           Welcome Back
         </h1>
-        <p className={`text-sm text-center mt-1 ${colors.subText}`}>
-          Sign in to your account
+        <p className="text-sm text-center mt-1 text-gray-400">
+          Sign in to your <span className="font-semibold text-cyan-400">DC Trades</span> account
         </p>
 
         {/* === Social Buttons === */}
         <div className="mt-6 space-y-3">
           <button
             onClick={() => handleOAuth("oauth_google")}
-            className={`w-full flex items-center justify-center gap-3 border rounded-xl py-2 px-4 transition-all ${colors.border} ${
-              isDark ? "bg-[#0b1220] hover:bg-[#162032]" : "bg-white hover:bg-gray-50"
-            } ${colors.text}`}
+            className="w-full flex items-center justify-center gap-3 border border-cyan-400/30 rounded-xl py-2 px-4 bg-[#101828] hover:bg-[#162032] transition-all text-gray-100"
           >
-            <Image
-              src="/icons/google.svg"
-              alt="Google"
-              width={20}
-              height={20}
-              className="opacity-90"
-            />
+            <Image src="/icons/google.svg" alt="Google" width={20} height={20} />
             <span className="text-sm font-medium">Sign in with Google</span>
           </button>
 
           <button
             onClick={() => handleOAuth("oauth_apple")}
-            className={`w-full flex items-center justify-center gap-3 border rounded-xl py-2 px-4 transition-all ${colors.border} ${
-              isDark ? "bg-[#0b1220] hover:bg-[#162032]" : "bg-white hover:bg-gray-50"
-            } ${colors.text}`}
+            className="w-full flex items-center justify-center gap-3 border border-cyan-400/30 rounded-xl py-2 px-4 bg-[#101828] hover:bg-[#162032] transition-all text-gray-100"
           >
-            <Image
-              src="/icons/apple.svg"
-              alt="Apple"
-              width={20}
-              height={20}
-              className="opacity-90 dark:invert-0"
-            />
+            <Image src="/icons/apple.svg" alt="Apple" width={20} height={20} />
             <span className="text-sm font-medium">Sign in with Apple</span>
           </button>
         </div>
 
         {/* === Divider === */}
         <div className="flex items-center gap-3 mt-6">
-          <div className="flex-1 h-px bg-gray-300 dark:bg-slate-700" />
-          <span className={`text-xs ${colors.subText}`}>or</span>
-          <div className="flex-1 h-px bg-gray-300 dark:bg-slate-700" />
+          <div className="flex-1 h-px bg-slate-700" />
+          <span className="text-xs text-gray-500">or</span>
+          <div className="flex-1 h-px bg-slate-700" />
         </div>
 
-        {/* === Email Sign-In === */}
+        {/* === Email Form === */}
         <form onSubmit={handleSubmit} className="mt-4 space-y-4">
           <div>
-            <label className={`block text-xs font-medium ${colors.subText}`}>
-              Email
-            </label>
+            <label className="block text-xs text-gray-400 mb-1">Email</label>
             <input
               type="email"
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="you@example.com"
-              className={`w-full rounded-lg px-3 py-2 border focus:outline-none focus:ring-1 ${colors.border} ${
-                isDark
-                  ? "bg-[#0b1220] text-white focus:ring-[#38BDF8]"
-                  : "bg-white text-gray-900 focus:ring-[#2563EB]"
-              }`}
+              className="w-full rounded-lg px-3 py-2 bg-[#0E1723] text-gray-100 placeholder-gray-500 border border-cyan-400/30 focus:ring-2 focus:ring-cyan-400 outline-none transition"
             />
           </div>
 
           <div>
-            <label className={`block text-xs font-medium ${colors.subText}`}>
-              Password
-            </label>
+            <label className="block text-xs text-gray-400 mb-1">Password</label>
             <input
               type="password"
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Enter your password"
-              className={`w-full rounded-lg px-3 py-2 border focus:outline-none focus:ring-1 ${colors.border} ${
-                isDark
-                  ? "bg-[#0b1220] text-white focus:ring-[#38BDF8]"
-                  : "bg-white text-gray-900 focus:ring-[#2563EB]"
-              }`}
+              className="w-full rounded-lg px-3 py-2 bg-[#0E1723] text-gray-100 placeholder-gray-500 border border-cyan-400/30 focus:ring-2 focus:ring-cyan-400 outline-none transition"
             />
           </div>
 
@@ -168,31 +152,24 @@ export default function SignInPage() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={loading}
-            className={`w-full rounded-xl py-2 font-medium shadow-sm ${colors.buttonPrimary}`}
+            className="w-full rounded-xl py-2 font-medium bg-gradient-to-r from-sky-600 to-cyan-400 text-white shadow-[0_0_10px_rgba(56,189,248,0.4)] hover:opacity-90"
           >
             {loading ? "Signing in..." : "Sign In"}
           </motion.button>
         </form>
 
-        {/* === Footer === */}
-        <p className={`text-xs text-center mt-4 ${colors.subText}`}>
+        {/* === Signup Link === */}
+        <p className="text-xs text-center mt-4 text-gray-500">
           Don’t have an account?{" "}
-          <a
-            href="/signup"
-            className={`font-semibold hover:underline ${
-              isDark ? "text-[#38BDF8]" : "text-[#2563EB]"
-            }`}
-          >
+          <a href="/signup" className="text-cyan-400 hover:underline font-semibold">
             Sign Up
           </a>
         </p>
 
-        <footer className={`mt-6 text-xs text-center ${colors.subText}`}>
+        {/* === Footer === */}
+        <footer className="mt-6 text-xs text-center text-gray-500">
           Secure • Fast • Professional
         </footer>
-
-        {/* ✅ Fix Clerk CAPTCHA warning */}
-        <div id="clerk-captcha" style={{ display: "none" }}></div>
       </motion.div>
     </div>
   );

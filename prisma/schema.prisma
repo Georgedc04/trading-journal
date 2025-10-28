@@ -7,45 +7,99 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+/// -------------------- 🧍 USER MODEL --------------------
 model User {
-  id        String            @id
+  id        String           @id @default(cuid())
+  createdAt DateTime         @default(now())
+  email     String?          @unique
+  name      String?
+  role      Role?            @default(USER)
   journals  JournalAccount[]
+  plan      UserPlan?        @relation("UserToUserPlan")
 }
 
-model JournalAccount {
+/// -------------------- 💳 USER PLAN MODEL --------------------
+/// Tracks subscription type and expiry for each user
+model UserPlan {
   id        Int       @id @default(autoincrement())
-  name      String
-  userId    String
-  user      User      @relation(fields: [userId], references: [id])
-  trades    Trade[]
-  charts    Chart[]
+  userId    String    @unique
+  plan      PlanType  @default(FREE)
+  expiresAt DateTime?
   createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  user      User      @relation("UserToUserPlan", fields: [userId], references: [id])
 }
 
+/// -------------------- 📘 JOURNAL ACCOUNT --------------------
+model JournalAccount {
+  id          Int       @id @default(autoincrement())
+  name        String
+  accountName String?
+  userId      String
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime? @updatedAt
+  charts      Chart[]
+  user        User      @relation(fields: [userId], references: [id])
+  trades      Trade[]
+}
+
+/// -------------------- 📊 TRADE MODEL --------------------
 model Trade {
-  id             Int      @id @default(autoincrement())
-  createdAt      DateTime @default(now())
+  id             Int            @id @default(autoincrement())
+  createdAt      DateTime       @default(now())
   date           DateTime
   direction      String
   quality        String
   pair           String
   reason         String
-  result         Float
+  result         Decimal        @db.Decimal(10, 2)
   journalId      Int
-  journal        JournalAccount @relation(fields: [journalId], references: [id])
   session        String?
   beforeImageUrl String?
   afterImageUrl  String?
+  journal        JournalAccount @relation(fields: [journalId], references: [id])
 
   @@index([date])
   @@index([journalId])
 }
 
+/// -------------------- 📈 CHART MODEL --------------------
 model Chart {
-  id         String   @id @default(cuid())
-  journalId  Int
-  journal    JournalAccount @relation(fields: [journalId], references: [id])
-  data       Json
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  id        String         @id @default(cuid())
+  journalId Int
+  data      Json
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  journal   JournalAccount @relation(fields: [journalId], references: [id])
+}
+
+/// -------------------- 🛡️ SECURITY LOG MODEL --------------------
+model SecurityLog {
+  id     Int      @id @default(autoincrement())
+  time   DateTime @default(now())
+  user   String
+  action String
+  ip     String?
+}
+
+/// -------------------- ⚙️ ADMIN SETTINGS MODEL --------------------
+model AdminSetting {
+  id           Int      @id @default(autoincrement())
+  supportEmail String   @default("support@dctrades.com")
+  maintenance  Boolean  @default(false)
+  updatedAt    DateTime @updatedAt
+  createdAt    DateTime @default(now())
+}
+
+/// -------------------- ⚙️ ROLE ENUM --------------------
+enum Role {
+  USER
+  ADMIN
+}
+
+/// -------------------- 💎 PLAN TYPE ENUM --------------------
+enum PlanType {
+  FREE
+  NORMAL
+  PRO
 }

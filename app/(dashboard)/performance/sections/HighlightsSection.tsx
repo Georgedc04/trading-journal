@@ -7,20 +7,14 @@ import {
   ArrowDownRight,
   CalendarDays,
 } from "lucide-react";
-import { useTheme } from "next-themes";
 
 export default function HighlightsSection({
   biggestProfit,
   biggestLoss,
-  colors,
 }: {
   biggestProfit: any;
   biggestLoss: any;
-  colors: any;
 }) {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
-
   // ✅ Only show profit if > 0
   const showProfit = biggestProfit && biggestProfit.result > 0;
   // ✅ Only show loss if < 0
@@ -28,11 +22,20 @@ export default function HighlightsSection({
 
   if (!showProfit && !showLoss) return null;
 
+  const colors = {
+    profit: "#00FF88",
+    loss: "#FF4D4D",
+    border: "rgba(56,189,248,0.25)",
+    bg: "linear-gradient(145deg, #0B0F14 0%, #111827 100%)",
+    shadow: "0 0 25px rgba(56,189,248,0.15)",
+    text: "#E2E8F0",
+  };
+
   return (
     <motion.section
-      initial={{ opacity: 0, y: 20 }}
+      initial={{ opacity: 0, y: 25 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.8 }}
+      transition={{ duration: 0.6 }}
       className={`grid grid-cols-1 ${
         showProfit && showLoss ? "md:grid-cols-2" : "md:grid-cols-1"
       } gap-6 w-full max-w-5xl mx-auto`}
@@ -42,7 +45,6 @@ export default function HighlightsSection({
           type="profit"
           trade={biggestProfit}
           colors={colors}
-          isDark={isDark}
           icon={<TrendingUp size={22} color={colors.profit} />}
           arrow={<ArrowUpRight size={22} color={colors.profit} />}
         />
@@ -53,7 +55,6 @@ export default function HighlightsSection({
           type="loss"
           trade={biggestLoss}
           colors={colors}
-          isDark={isDark}
           icon={<TrendingDown size={22} color={colors.loss} />}
           arrow={<ArrowDownRight size={22} color={colors.loss} />}
         />
@@ -62,43 +63,31 @@ export default function HighlightsSection({
   );
 }
 
-function TradeCard({ type, trade, colors, icon, arrow, isDark }: any) {
+function TradeCard({ type, trade, colors, icon, arrow }: any) {
   const isProfit = type === "profit";
 
-  // ✅ Softer gradients depending on mode
-  const bg = isProfit
-    ? isDark
-      ? "linear-gradient(145deg, rgba(22,163,74,0.25), rgba(21,128,61,0.15))"
-      : "linear-gradient(145deg, rgba(187,247,208,0.8), rgba(134,239,172,0.7))"
-    : isDark
-      ? "linear-gradient(145deg, rgba(220,38,38,0.25), rgba(185,28,28,0.15))"
-      : "linear-gradient(145deg, rgba(254,202,202,0.8), rgba(252,165,165,0.7))";
-
-  const borderColor = isProfit
-    ? isDark
-      ? "rgba(34,197,94,0.3)"
-      : "rgba(22,163,74,0.3)"
-    : isDark
-      ? "rgba(239,68,68,0.3)"
-      : "rgba(220,38,38,0.3)";
-
-  const boxShadow = isProfit
-    ? isDark
-      ? "0 8px 20px rgba(34,197,94,0.15)"
-      : "0 8px 20px rgba(22,163,74,0.2)"
-    : isDark
-      ? "0 8px 20px rgba(239,68,68,0.15)"
-      : "0 8px 20px rgba(220,38,38,0.2)";
+  const palette = {
+    background: isProfit
+      ? "linear-gradient(145deg, rgba(0,255,136,0.15), rgba(0,100,60,0.1))"
+      : "linear-gradient(145deg, rgba(255,77,77,0.15), rgba(120,20,20,0.1))",
+    border: isProfit ? "rgba(0,255,136,0.25)" : "rgba(255,77,77,0.25)",
+    shadow: isProfit
+      ? "0 0 25px rgba(0,255,136,0.25)"
+      : "0 0 25px rgba(255,77,77,0.25)",
+  };
 
   return (
-    <div
-      className="p-6 rounded-2xl border shadow-lg backdrop-blur-md transition-all duration-300 hover:scale-[1.01]"
+    <motion.div
+      whileHover={{ scale: 1.02 }}
+      className="p-6 rounded-2xl border backdrop-blur-md shadow-lg transition-all duration-300"
       style={{
-        background: bg,
-        borderColor,
-        boxShadow,
+        background: palette.background,
+        borderColor: palette.border,
+        boxShadow: palette.shadow,
+        color: colors.text,
       }}
     >
+      {/* === Header === */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
           {icon}
@@ -112,15 +101,18 @@ function TradeCard({ type, trade, colors, icon, arrow, isDark }: any) {
         {arrow}
       </div>
 
+      {/* === Trade Details === */}
       <div className="space-y-2 text-sm sm:text-base">
         <p>
-          <strong>Pair:</strong> {trade.pair}
+          <strong>Pair:</strong> <span className="opacity-90">{trade.pair}</span>
         </p>
         <p>
-          <strong>Direction:</strong> {trade.direction}
+          <strong>Direction:</strong>{" "}
+          <span className="opacity-90">{trade.direction}</span>
         </p>
         <p>
-          <strong>Quality:</strong> {trade.quality}
+          <strong>Quality:</strong>{" "}
+          <span className="opacity-90">{trade.quality}</span>
         </p>
         <p>
           <strong>Result:</strong>{" "}
@@ -132,10 +124,10 @@ function TradeCard({ type, trade, colors, icon, arrow, isDark }: any) {
           </span>
         </p>
         <p className="flex items-center text-xs opacity-70">
-          <CalendarDays size={14} className="mr-1" />{" "}
+          <CalendarDays size={14} className="mr-1 text-sky-400" />
           {new Date(trade.date).toLocaleDateString()}
         </p>
       </div>
-    </div>
+    </motion.div>
   );
 }

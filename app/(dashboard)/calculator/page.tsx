@@ -2,8 +2,7 @@
 
 import React, { useState, useMemo } from "react";
 import { motion } from "framer-motion";
-import { RefreshCw, Copy, BarChart3, Percent, CircleDollarSign } from "lucide-react";
-import { useTheme } from "next-themes";
+import { RefreshCw, Copy, Percent, CircleDollarSign } from "lucide-react";
 import Logo from "@/components/Logo";
 
 // ✅ Conversion rates for deposit currency
@@ -60,9 +59,6 @@ const getSymbol = (cur: string) =>
   cur === "USD" ? "$" : cur === "EUR" ? "€" : cur === "GBP" ? "£" : "";
 
 export default function ForexCalculator() {
-  const { resolvedTheme } = useTheme();
-  const isDark = resolvedTheme === "dark";
-
   const [mode, setMode] = useState<"pip" | "risk">("pip");
   const [depositCurrency, setDepositCurrency] = useState("USD");
   const [pair, setPair] = useState("EURUSD");
@@ -90,7 +86,8 @@ export default function ForexCalculator() {
 
   // ✅ Risk Mode Calculation
   const riskResult = useMemo(() => {
-    if (accountSize === "" || riskPercent === "" || stopLossPips === "") return { lotSize: 0, riskAmount: 0 };
+    if (accountSize === "" || riskPercent === "" || stopLossPips === "")
+      return { lotSize: 0, riskAmount: 0 };
     const pipValue = pairRates[pair] ?? 0;
     let riskAmount = (Number(accountSize) * Number(riskPercent)) / 100;
     let lotSize = riskAmount / (Number(stopLossPips) * pipValue);
@@ -140,33 +137,25 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
   };
 
   return (
-    <div
-      className={`min-h-screen flex flex-col items-center justify-center p-6 ${
-        isDark
-          ? "bg-gradient-to-br from-[#0B0F14] via-[#111827] to-[#1E293B]"
-          : "bg-gradient-to-br from-[#F9FAFB] via-[#E0F2FE] to-[#D0E2FA]"
-      }`}
-    >
-      {/* ✅ Header with Logo + Title */}
+    <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gradient-to-br from-[#0B0F14] via-[#0B0F14] to-[#0B0F14]">
+      {/* ✅ Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="flex flex-col items-center mb-6"
       >
-        <Logo isDark={false} />
+        <Logo   />
         <motion.h1
-          className="text-2xl sm:text-4xl font-extrabold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent pb-2"
+          className="text-2xl sm:text-3xl font-extrabold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent pb-2"
           whileHover={{ scale: 1.03 }}
         >
           Forex Calculator
         </motion.h1>
-        <p
-          className={`text-sm ${
-            isDark ? "text-gray-400" : "text-slate-600"
-          } mt-1`}
-        >
-          {mode === "pip" ? "Forex Pip Calculator" : "Risk Percentage Calculator"}
+        <p className="text-sm text-gray-400 mt-1">
+          {mode === "pip"
+            ? "Forex Pip Calculator"
+            : "Risk Percentage Calculator"}
         </p>
       </motion.div>
 
@@ -175,11 +164,7 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
         initial={{ opacity: 0, y: 15 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
-        className={`w-full max-w-lg rounded-2xl shadow-2xl border p-6 lg:p-8 ${
-          isDark
-            ? "bg-[rgba(30,41,59,0.8)] border-[rgba(56,189,248,0.2)]"
-            : "bg-[rgba(255,255,255,0.9)] border-[rgba(148,163,184,0.2)]"
-        }`}
+        className="w-full max-w-lg rounded-2xl shadow-2xl border p-6 lg:p-8 bg-[#0B0F14] border-[rgba(56,189,248,0.5)]"
       >
         {/* Toggle */}
         <div className="flex justify-center gap-2 mb-6">
@@ -198,7 +183,7 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
             className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium text-sm transition ${
               mode === "risk"
                 ? "bg-gradient-to-r from-emerald-500 to-teal-400 text-black"
-                : "bg-slate-700 text-gray-200"
+                : "bg-[#0B0F14] text-gray-200 border border-gradient-to-r from-emerald-500 to-teal-400"
             }`}
           >
             <Percent size={16} /> Risk Mode
@@ -214,11 +199,7 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
             <select
               value={pair}
               onChange={(e) => setPair(e.target.value)}
-              className={`w-full px-3 py-2 rounded-md border text-sm ${
-                isDark
-                  ? "bg-slate-800 border-slate-600 text-gray-100"
-                  : "bg-white border-sky-300 text-sky-800"
-              }`}
+              className="w-full px-3 py-2 rounded-md border text-sm bg-[#0B0F14] border-slate-600 text-gray-100"
             >
               {Object.keys(pairRates).map((p) => (
                 <option key={p}>{p}</option>
@@ -228,7 +209,6 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
 
           {mode === "pip" ? (
             <>
-              {/* Pip Mode Inputs */}
               <div>
                 <label className="block text-sm font-semibold mb-1">
                   Deposit Currency
@@ -236,11 +216,7 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
                 <select
                   value={depositCurrency}
                   onChange={(e) => setDepositCurrency(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-md border text-sm ${
-                    isDark
-                      ? "bg-slate-800 border-slate-600 text-gray-100"
-                      : "bg-white border-sky-300 text-sky-800"
-                  }`}
+                  className="w-full px-3 py-2 rounded-md border text-sm bg-[#0B0F14] border-slate-600 text-gray-100"
                 >
                   <option>USD</option>
                   <option>EUR</option>
@@ -258,11 +234,7 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
                     setLots(e.target.value === "" ? "" : Number(e.target.value))
                   }
                   placeholder="Enter lots"
-                  className={`w-full px-3 py-2 rounded-md border text-sm ${
-                    isDark
-                      ? "bg-slate-800 border-slate-600 text-gray-100"
-                      : "bg-white border-sky-300 text-sky-800"
-                  }`}
+                  className="w-full px-3 py-2 rounded-md border text-sm bg-[#0B0F14] border-slate-600 text-gray-100"
                 />
               </div>
               <div>
@@ -276,17 +248,12 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
                     setPips(e.target.value === "" ? "" : Number(e.target.value))
                   }
                   placeholder="Enter pips"
-                  className={`w-full px-3 py-2 rounded-md border text-sm ${
-                    isDark
-                      ? "bg-slate-800 border-slate-600 text-gray-100"
-                      : "bg-white border-sky-300 text-sky-800"
-                  }`}
+                  className="w-full px-3 py-2 rounded-md border text-sm bg-[#0B0F14] border-slate-600 text-gray-100"
                 />
               </div>
             </>
           ) : (
             <>
-              {/* Risk Mode Inputs */}
               <div>
                 <label className="block text-sm font-semibold mb-1">
                   Deposit Currency
@@ -294,11 +261,7 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
                 <select
                   value={depositCurrency}
                   onChange={(e) => setDepositCurrency(e.target.value)}
-                  className={`w-full px-3 py-2 rounded-md border text-sm ${
-                    isDark
-                      ? "bg-slate-800 border-slate-600 text-gray-100"
-                      : "bg-white border-sky-300 text-sky-800"
-                  }`}
+                  className="w-full px-3 py-2 rounded-md border text-sm bg-[#0B0F14] border-slate-600 text-gray-100"
                 >
                   <option>USD</option>
                   <option>EUR</option>
@@ -313,14 +276,12 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
                   type="number"
                   value={accountSize}
                   onChange={(e) =>
-                    setAccountSize(e.target.value === "" ? "" : Number(e.target.value))
+                    setAccountSize(
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
                   }
                   placeholder="Enter account size"
-                  className={`w-full px-3 py-2 rounded-md border text-sm ${
-                    isDark
-                      ? "bg-slate-800 border-slate-600 text-gray-100"
-                      : "bg-white border-sky-300 text-sky-800"
-                  }`}
+                  className="w-full px-3 py-2 rounded-md border text-sm bg-[#0B0F14] border-slate-600 text-gray-100"
                 />
               </div>
               <div>
@@ -331,14 +292,12 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
                   type="number"
                   value={riskPercent}
                   onChange={(e) =>
-                    setRiskPercent(e.target.value === "" ? "" : Number(e.target.value))
+                    setRiskPercent(
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
                   }
                   placeholder="Enter risk %"
-                  className={`w-full px-3 py-2 rounded-md border text-sm ${
-                    isDark
-                      ? "bg-slate-800 border-slate-600 text-gray-100"
-                      : "bg-white border-sky-300 text-sky-800"
-                  }`}
+                  className="w-full px-3 py-2 rounded-md border text-sm bg-[#0B0F14] border-slate-600 text-gray-100"
                 />
               </div>
               <div>
@@ -349,14 +308,12 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
                   type="number"
                   value={stopLossPips}
                   onChange={(e) =>
-                    setStopLossPips(e.target.value === "" ? "" : Number(e.target.value))
+                    setStopLossPips(
+                      e.target.value === "" ? "" : Number(e.target.value)
+                    )
                   }
                   placeholder="Enter stop loss in pips"
-                  className={`w-full px-3 py-2 rounded-md border text-sm ${
-                    isDark
-                      ? "bg-slate-800 border-slate-600 text-gray-100"
-                      : "bg-white border-sky-300 text-sky-800"
-                  }`}
+                  className="w-full px-3 py-2 rounded-md border text-sm bg-[#0B0F14] border-slate-600 text-gray-100"
                 />
               </div>
             </>
@@ -364,13 +321,7 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
         </div>
 
         {/* ✅ Results */}
-        <div
-          className={`mt-6 p-5 rounded-xl text-center border ${
-            isDark
-              ? "bg-gradient-to-br from-sky-950/40 to-cyan-900/40 border-slate-700 text-sky-100"
-              : "bg-gradient-to-br from-sky-50 to-cyan-100 border-sky-200 text-sky-800"
-          }`}
-        >
+        <div className="mt-6 p-5 rounded-xl text-center border bg-gradient-to-br from-sky-950/40 to-cyan-900/40 border-slate-700 text-sky-100">
           {mode === "pip" ? (
             <>
               <p className="text-sm opacity-80 mb-1">Total Value</p>
@@ -387,18 +338,16 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
               </h2>
               <p className="text-sm mt-2 opacity-75">
                 Risk Amount: {symbol}
-                {riskResult.riskAmount ? riskResult.riskAmount.toFixed(2) : "0.00"}
+                {riskResult.riskAmount
+                  ? riskResult.riskAmount.toFixed(2)
+                  : "0.00"}
               </p>
             </>
           )}
 
           <button
             onClick={copyToClipboard}
-            className={`mt-4 flex mx-auto items-center gap-2 px-4 py-2 rounded-md font-medium text-sm transition ${
-              isDark
-                ? "bg-gradient-to-r from-sky-500 to-cyan-400 text-black"
-                : "bg-gradient-to-r from-sky-600 to-cyan-400 text-white"
-            } hover:opacity-90`}
+            className="mt-4 flex mx-auto items-center gap-2 px-4 py-2 rounded-md font-medium text-sm bg-gradient-to-r from-sky-500 to-cyan-400 text-black hover:opacity-90"
           >
             <Copy size={14} /> Copy Info
           </button>
@@ -407,11 +356,7 @@ Recommended Lot Size: ${riskResult.lotSize.toFixed(3)}
         {/* Reset Button */}
         <button
           onClick={reset}
-          className={`mt-6 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md font-medium border text-sm ${
-            isDark
-              ? "bg-slate-800 border-slate-600 text-sky-300 hover:bg-slate-700"
-              : "bg-white border-sky-300 text-sky-700 hover:bg-sky-50"
-          }`}
+          className="mt-6 w-full flex items-center justify-center gap-2 px-3 py-2 rounded-md font-medium border text-sm bg-[#0B0F14] border-slate-600 text-sky-300 hover:bg-slate-700"
         >
           <RefreshCw size={14} /> Reset
         </button>

@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { useTheme } from "next-themes";
 import {
   Settings,
   Wallet,
@@ -28,10 +27,15 @@ export default function AccountHeader({
   balance,
 }: Props) {
   const [showModal, setShowModal] = useState(false);
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
+  const [loading, setLoading] = useState(true);
 
-  // ✅ Persist account data
+  // ✅ Simulate loading delay for smooth skeletons
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // ✅ Save account data
   useEffect(() => {
     if (accountSize && targetPercent) {
       localStorage.setItem(
@@ -41,7 +45,7 @@ export default function AccountHeader({
     }
   }, [accountSize, targetPercent]);
 
-  // ✅ Load saved details
+  // ✅ Load saved data
   useEffect(() => {
     const saved = localStorage.getItem("accountDetails");
     if (saved) {
@@ -55,47 +59,33 @@ export default function AccountHeader({
   const bal = Number(balance);
   const diff = acc ? ((bal - acc) / acc) * 100 : 0;
   const diffText = `${diff > 0 ? "+" : ""}${diff.toFixed(2)}%`;
-
   const isProfit = bal > acc;
   const isLoss = bal < acc;
-  const isNew = bal === acc;
+  const isNeutral = bal === acc;
 
-  const palette = isDark
-    ? {
-        bg: "linear-gradient(145deg, #0B0F14, #111827)",
-        border: "rgba(56,189,248,0.25)",
-        text: "#E2E8F0",
-        accent: "#38BDF8",
-        profit: "#22C55E",
-        loss: "#EF4444",
-        new: "#F59E0B", // Orange tone for new account in dark mode
-        shadow: "0 8px 20px rgba(56,189,248,0.15)",
-        button: "from-sky-500 to-cyan-400",
-      }
-    : {
-        bg: "linear-gradient(145deg, #F9FAFB, #E0F2FE)",
-        border: "rgba(37,99,235,0.25)",
-        text: "#1E293B",
-        accent: "#2563EB",
-        profit: "#16A34A",
-        loss: "#DC2626",
-        new: "#3B82F6", // Light blue tone to match gradient
-        shadow: "0 8px 20px rgba(37,99,235,0.15)",
-        button: "from-blue-600 to-sky-400",
-      };
+  const palette = {
+    bg: "linear-gradient(145deg, #0B0F14, #111827)",
+    border: "rgba(56,189,248,0.25)",
+    text: "#E2E8F0",
+    accent: "#38BDF8",
+    profit: "#00FF88",
+    loss: "#FF4D4D",
+    neutral: "#FACC15",
+    shadow: "0 0 25px rgba(56,189,248,0.15)",
+  };
 
   const balanceColor = isProfit
     ? palette.profit
     : isLoss
     ? palette.loss
-    : palette.new;
+    : palette.neutral;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4 }}
-      className="flex flex-col sm:flex-row flex-wrap justify-between items-start sm:items-center gap-4 p-5 rounded-2xl border shadow-md transition-all duration-300"
+      className="flex flex-col sm:flex-row flex-wrap justify-between items-start sm:items-center gap-4 p-5 rounded-2xl border shadow-lg transition-all duration-300"
       style={{
         background: palette.bg,
         borderColor: palette.border,
@@ -106,54 +96,55 @@ export default function AccountHeader({
       {/* === Account Summary === */}
       <div className="flex flex-col gap-1">
         <div className="flex items-center gap-2 text-lg font-semibold">
-          <Wallet
-            size={20}
-            className={isDark ? "text-sky-400" : "text-blue-600"}
-          />
+          <Wallet size={20} className="text-sky-400" />
           <span className="opacity-80">Current Balance:</span>
-          <span className="font-bold" style={{ color: balanceColor }}>
-            ${isNaN(balance) ? "0.00" : balance.toFixed(2)}
-          </span>
+          {loading ? (
+            <span className="animate-pulse bg-slate-700 h-5 w-20 rounded-md"></span>
+          ) : (
+            <span className="font-bold" style={{ color: balanceColor }}>
+              ${isNaN(balance) ? "0.00" : balance.toFixed(2)}
+            </span>
+          )}
         </div>
 
-        {accountSize && targetPercent && (
-          <div className="text-sm flex flex-wrap items-center gap-4 mt-2 opacity-90">
-            <div className="flex items-center gap-1">
-              <Wallet size={14} className="opacity-70" />
-              <span>Account Size:</span>
-              <span className="font-medium">${accountSize}</span>
-            </div>
-
-            <div className="flex items-center gap-1">
-              <Target size={14} className="opacity-70" />
-              <span>Target:</span>
-              <span
-                className="font-medium"
-                style={{ color: palette.accent }}
-              >
-                {targetPercent}%
+        <div className="text-sm flex flex-wrap items-center gap-4 mt-2 opacity-90">
+          <div className="flex items-center gap-1">
+            <Wallet size={14} className="text-sky-400 opacity-80" />
+            <span>Account Size:</span>
+            {loading ? (
+              <span className="animate-pulse bg-slate-700 h-4 w-16 rounded-md"></span>
+            ) : (
+              <span className="font-medium text-slate-100">
+                ${accountSize}
               </span>
-            </div>
+            )}
+          </div>
 
+          <div className="flex items-center gap-1">
+            <Target size={14} className="text-cyan-400 opacity-80" />
+            <span>Target:</span>
+            {loading ? (
+              <span className="animate-pulse bg-slate-700 h-4 w-10 rounded-md"></span>
+            ) : (
+              <span className="font-medium text-sky-400">{targetPercent}%</span>
+            )}
+          </div>
+
+          {!loading && (
             <div className="flex items-center gap-1">
               {isProfit ? (
-                <TrendingUp size={14} color={palette.profit} />
+                <TrendingUp color={palette.profit} size={14} />
               ) : isLoss ? (
-                <TrendingDown size={14} color={palette.loss} />
+                <TrendingDown color={palette.loss} size={14} />
               ) : (
-                <TrendingUp size={14} color={palette.new} />
+                <TrendingUp color={palette.neutral} size={14} />
               )}
-              <span
-                className="font-semibold"
-                style={{
-                  color: balanceColor,
-                }}
-              >
+              <span className="font-semibold" style={{ color: balanceColor }}>
                 {diffText}
               </span>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
 
       {/* === Settings Button === */}
@@ -161,11 +152,9 @@ export default function AccountHeader({
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
         onClick={() => setShowModal(true)}
-        className={`flex items-center gap-2 font-semibold px-4 py-2 rounded-lg text-white shadow-lg bg-gradient-to-r ${palette.button} transition-all`}
+        className="flex items-center gap-2 font-semibold px-4 py-2 rounded-lg text-black shadow-md bg-gradient-to-r from-sky-500 to-cyan-400 hover:opacity-90 transition-all"
         style={{
-          boxShadow: isDark
-            ? "0 4px 5px rgba(56,189,248,0.3)"
-            : "0 4px 2px rgba(37,99,235,0.3)",
+          boxShadow: "0 0 20px rgba(56,189,248,0.4)",
         }}
       >
         <Settings size={18} />

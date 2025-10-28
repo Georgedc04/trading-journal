@@ -1,28 +1,25 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { useTheme } from "next-themes";
 import useTrades from "../hook/useTrades";
 import { motion } from "framer-motion";
 
 type SessionName = "London" | "New York" | "Asian";
 
 export default function SessionPerformanceTable() {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
   const { trades } = useTrades();
 
-  // 🎯 Palette matching your donut charts
+  // 🎨 Dark Mode Palette
   const palette = {
-    bg: isDark ? "rgba(6,8,15,0.6)" : "rgba(255,255,255,0.9)",
-    text: isDark ? "#E6EEF7" : "#0f172a",
-    border: isDark ? "rgba(56,189,248,0.15)" : "rgba(37,99,235,0.15)",
-    win: isDark ? "#22c55e" : "#16A34A",
-    loss: isDark ? "#ef4444" : "#DC2626",
-    barBg: isDark ? "rgba(255,255,255,0.08)" : "rgba(0,0,0,0.06)",
+    bg: "rgba(11,15,20,0.85)",
+    text: "#E2E8F0",
+    border: "rgba(56,189,248,0.15)",
+    win: "#22c55e",
+    loss: "#ef4444",
+    barBg: "rgba(255,255,255,0.08)",
   };
 
-  // 🧮 Compute per-session stats
+  // 🧮 Compute session stats
   const sessions = useMemo(() => {
     const base = {
       London: { wins: 0, losses: 0, total: 0 },
@@ -41,7 +38,7 @@ export default function SessionPerformanceTable() {
     return base;
   }, [trades]);
 
-  // 📊 Make data array for rendering
+  // 📊 Format data for table
   const rows = Object.entries(sessions).map(([session, stats]) => {
     const winRate =
       stats.total > 0 ? Math.round((stats.wins / stats.total) * 100) : 0;
@@ -54,36 +51,30 @@ export default function SessionPerformanceTable() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.45 }}
       viewport={{ once: true }}
-      className="w-full max-w-4xl mx-auto mt-10"
+      className="w-full max-w-4xl mx-auto mt-10 text-slate-200"
       style={{
         background: palette.bg,
         borderRadius: "1rem",
         border: `1px solid ${palette.border}`,
-        boxShadow: isDark
-          ? "0 8px 25px rgba(56,189,248,0.1)"
-          : "0 8px 25px rgba(37,99,235,0.08)",
+        boxShadow: "0 8px 25px rgba(56,189,248,0.15)",
         overflow: "hidden",
       }}
     >
-      <div className="p-5 border-b" style={{ borderColor: palette.border }}>
-        <h2
-          className="text-xl font-semibold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent"
-        >
+      {/* Header */}
+      <div className="p-5 border-b border-sky-400/10">
+        <h2 className="text-xl font-semibold bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">
           Session Performance Summary
         </h2>
-        <p className="text-sm opacity-70" style={{ color: palette.text }}>
+        <p className="text-sm opacity-70 text-slate-400">
           Compare your trading discipline across sessions 🚀
         </p>
       </div>
 
-      {/* === Table === */}
+      {/* Table */}
       <div className="overflow-x-auto">
         <table className="min-w-full text-sm">
           <thead>
-            <tr
-              className="text-left text-xs uppercase tracking-wide"
-              style={{ color: palette.text, opacity: 0.6 }}
-            >
+            <tr className="text-left text-xs uppercase tracking-wide text-slate-400">
               <th className="px-6 py-3">Session</th>
               <th className="px-6 py-3 text-center">Trades</th>
               <th className="px-6 py-3 text-center">Wins</th>
@@ -96,14 +87,9 @@ export default function SessionPerformanceTable() {
             {rows.map((r, i) => (
               <tr
                 key={i}
-                className={`transition-all duration-300 ${
-                  isDark
-                    ? "hover:bg-slate-800/50"
-                    : "hover:bg-slate-100/60"
-                }`}
-                style={{ color: palette.text }}
+                className="transition-all duration-300 hover:bg-sky-500/5"
               >
-                <td className="px-6 py-4 font-medium">{r.session}</td>
+                <td className="px-6 py-4 font-medium text-slate-200">{r.session}</td>
                 <td className="px-6 py-4 text-center">{r.total}</td>
                 <td className="px-6 py-4 text-center" style={{ color: palette.win }}>
                   {r.wins}

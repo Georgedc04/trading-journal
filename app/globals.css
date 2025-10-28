@@ -1,6 +1,25 @@
 @import "tailwindcss";
 
-/* ===== Animations ===== */
+/* === Background Animation === */
+@keyframes bgMove {
+  0% {
+    transform: scale(1);
+    background-position: center top;
+  }
+  50% {
+    transform: scale(1.05);
+    background-position: center bottom;
+  }
+  100% {
+    transform: scale(1);
+    background-position: center top;
+  }
+}
+.bg-animate {
+  animation: bgMove 30s ease-in-out infinite alternate;
+}
+
+/* === Subtle Fade Animations === */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -12,7 +31,7 @@
   }
 }
 .animate-fadeIn {
-  animation: fadeIn 0.25s ease-out;
+  animation: fadeIn 0.3s ease-out;
 }
 
 @keyframes fadeInUp {
@@ -26,44 +45,29 @@
   }
 }
 .fadeInUp {
-  animation: fadeInUp 0.4s ease-out both;
+  animation: fadeInUp 0.45s ease-out both;
 }
 
-/* ===== Light (Coffee) Theme ===== */
+/* === Default DC Trades Dark Theme === */
 :root {
-  --color-primary: #2563EB;
-  --color-background: #fff8f3;
-  --color-foreground: #4a3428;
-  --color-border: #e5d3b7;
-  --color-white: #ffffff;
-  --color-text-light: #9a8478;
-  --color-expense: #e74c3c;
-  --color-income: #2ecc71;
-  --color-card: #ffffff;
-  --color-shadow: rgba(0, 0, 0, 0.1);
-}
-
-/* ===== Dark Theme ===== */
-[data-theme="dark"],
-.dark {
   --color-primary: #38BDF8;
-  --color-background: #0a0a0a;
-  --color-foreground: #e2e8f0;
-  --color-border: #1e293b;
+  --color-background: #0B0F14;
+  --color-foreground: #E2E8F0;
+  --color-border: #1E293B;
+  --color-card: #0F172A;
   --color-white: #111827;
-  --color-text-light: #94a3b8;
-  --color-expense: #f87171;
-  --color-income: #10b981;
-  --color-card: #0f172a;
-  --color-shadow: rgba(0, 0, 0, 0.5);
+  --color-text-light: #94A3B8;
+  --color-expense: #F87171;
+  --color-income: #10B981;
+  --color-shadow: rgba(56, 189, 248, 0.15);
 }
 
-/* ===== Base Styles ===== */
+/* === Base Styling === */
 body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: "Inter", Arial, Helvetica, sans-serif;
-  transition: background 0.3s ease, color 0.3s ease;
+  transition: background 0.4s ease, color 0.4s ease;
 }
 
 a {
@@ -74,74 +78,77 @@ a:hover {
   color: var(--color-text-light);
 }
 
-/* ===== Utility Enhancements ===== */
+/* === Smooth Scrolling === */
 html {
   scroll-behavior: smooth;
 }
 
+/* === Scrollbar Styling === */
 ::-webkit-scrollbar {
   width: 8px;
 }
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(100, 116, 139, 0.4);
+  background-color: rgba(56, 189, 248, 0.25);
   border-radius: 6px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(100, 116, 139, 0.6);
+  background-color: rgba(56, 189, 248, 0.45);
 }
 
-/* ===== Cards, Shadows, and Containers ===== */
+/* === Card Components === */
 .card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
-  box-shadow: 0 4px 12px var(--color-shadow);
+  box-shadow: 0 0 20px var(--color-shadow);
   transition: all 0.25s ease;
 }
 .card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px var(--color-shadow);
+  transform: translateY(-3px);
+  box-shadow: 0 0 35px rgba(56, 189, 248, 0.25);
 }
 
-/* ===== Buttons ===== */
+/* === Buttons === */
 .btn-primary {
   background-color: var(--color-primary);
   color: var(--color-white);
   font-weight: 600;
-  padding: 0.5rem 1rem;
-  border-radius: 0.5rem;
-  transition: background-color 0.2s ease, transform 0.2s ease;
+  padding: 0.5rem 1.25rem;
+  border-radius: 0.6rem;
+  transition: all 0.25s ease;
 }
 .btn-primary:hover {
-  background-color: var(--color-text-light);
-  transform: scale(1.02);
+  transform: scale(1.03);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
 }
 
-/* ===== Charts & Table Borders ===== */
+/* === Chart & Table Containers === */
 .chart-container,
 .table-container {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: 0.75rem;
-  box-shadow: 0 2px 6px var(--color-shadow);
+  box-shadow: 0 0 18px rgba(56, 189, 248, 0.1);
 }
 
-/* Hide scrollbars everywhere */
+/* === Hide Scrollbars === */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 .scrollbar-none {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;     /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
- @keyframes shimmer {
-                  0% {
-                    transform: translateX(-100%);
-                  }
-                  50% {
-                    transform: translateX(100%);
-                  }
-                  100% {
-                    transform: translateX(100%);
-                  }
-                }
+
+/* === Shimmer Loading Effect === */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  50% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}

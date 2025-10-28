@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, Fragment } from "react";
-import { useTheme } from "next-themes";
 import {
   TrendingUp,
   TrendingDown,
@@ -22,7 +21,6 @@ type TradeFormProps = {
 };
 
 export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
-  const { theme } = useTheme();
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -40,7 +38,17 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
     afterImageUrl: "",
   });
 
-  // ✅ Image upload
+  const palette = {
+    bg: "linear-gradient(145deg, #0B0F14 0%, #111827 100%)",
+    border: "rgba(56,189,248,0.25)",
+    text: "#E2E8F0",
+    accent: "#38BDF8",
+    shadow: "0 8px 25px rgba(56,189,248,0.25)",
+    profit: "#00FF88",
+    loss: "#FF4D4D",
+  };
+
+  // ✅ Image Upload Handler
   const handleImageUpload = (e: any, field: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -54,12 +62,13 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
     reader.readAsDataURL(file);
   };
 
-  // ✅ Submit
+  // ✅ Submit Handler
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.date || !form.direction || !form.reason || !form.amount) {
-      return setError("⚠️ Please fill all required fields before adding");
+      return setError("⚠️ Please fill all required fields before adding.");
     }
+
     setError("");
     setSubmitting(true);
     try {
@@ -92,27 +101,10 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
     }
   };
 
-  const isDark = theme === "dark";
-  const palette = isDark
-    ? {
-        bg: "linear-gradient(145deg, #0B0F14, #111827)",
-        border: "#1E293B",
-        text: "#E2E8F0",
-        accent: "#38BDF8",
-        shadow: "0 8px 25px rgba(56,189,248,0.2)",
-      }
-    : {
-        bg: "linear-gradient(145deg, #F9FAFB, #E0F2FE)",
-        border: "#CBD5E1",
-        text: "#1E293B",
-        accent: "#2563EB",
-        shadow: "0 8px 25px rgba(37,99,235,0.15)",
-      };
-
   return (
     <form
       onSubmit={handleSubmit}
-      className="rounded-2xl p-6 flex flex-col gap-4 transition-all duration-300"
+      className="rounded-2xl p-6 flex flex-col gap-4 border backdrop-blur-md transition-all duration-300"
       style={{
         background: palette.bg,
         border: `1px solid ${palette.border}`,
@@ -120,34 +112,38 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
         color: palette.text,
       }}
     >
+      {/* Header */}
       <h2 className="text-xl font-bold flex items-center gap-2 bg-gradient-to-r from-sky-400 to-cyan-300 bg-clip-text text-transparent">
         <BarChart3 size={20} /> Add New Trade
       </h2>
 
-      {/* === Basic Inputs === */}
+      {/* Basic Inputs */}
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* Date */}
-        <InputField
-          icon={<Calendar size={18} />}
+        <input
           type="date"
           value={form.date}
-          onChange={(e: any) => setForm({ ...form, date: e.target.value })}
-          palette={palette}
+          onChange={(e) => setForm({ ...form, date: e.target.value })}
+          className={`w-full rounded-lg border px-3 py-2 text-sm outline-none transition-all duration-200
+            bg-[#0B0F14] text-gray-200 border-[#1E293B]
+            placeholder-gray-500
+            focus:ring-1 focus:ring-cyan-400 focus:border-cyan-400
+          `}
+          style={{
+            colorScheme: "dark", // 👈 Forces native calendar popup to use dark style
+          }}
         />
 
-        {/* Direction */}
         <DropdownField
           label="Direction"
           value={form.direction}
           setValue={(v: string) => setForm({ ...form, direction: v })}
           options={[
-            { name: "Buy", icon: <TrendingUp color="#22c55e" size={16} /> },
-            { name: "Sell", icon: <TrendingDown color="#ef4444" size={16} /> },
+            { name: "Buy", icon: <TrendingUp color={palette.profit} size={16} /> },
+            { name: "Sell", icon: <TrendingDown color={palette.loss} size={16} /> },
           ]}
           palette={palette}
         />
 
-        {/* ✅ Added Pair Dropdown */}
         <DropdownField
           label="Pair"
           value={form.pair}
@@ -155,20 +151,14 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
           options={[
             { name: "EURUSD" },
             { name: "GBPUSD" },
-            { name: "USDJPY" },
             { name: "XAUUSD" },
             { name: "BTCUSD" },
-            { name: "ETHUSD" },
-            { name: "USDCAD" },
-            { name: "AUDUSD" },
-            { name: "NZDUSD" },
             { name: "NAS100" },
             { name: "SPX500" },
           ]}
           palette={palette}
         />
 
-        {/* Amount */}
         <InputField
           icon={<DollarSign size={18} />}
           type="number"
@@ -179,15 +169,15 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
         />
       </div>
 
-      {/* === Type / Session / Quality === */}
+      {/* Type / Session / Quality */}
       <div className="grid sm:grid-cols-3 gap-4">
         <DropdownField
           label="Type"
           value={form.type}
           setValue={(v: string) => setForm({ ...form, type: v })}
           options={[
-            { name: "profit", icon: <TrendingUp color="#22c55e" size={16} /> },
-            { name: "loss", icon: <TrendingDown color="#ef4444" size={16} /> },
+            { name: "profit", icon: <TrendingUp color={palette.profit} size={16} /> },
+            { name: "loss", icon: <TrendingDown color={palette.loss} size={16} /> },
           ]}
           palette={palette}
         />
@@ -196,11 +186,7 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
           label="Session"
           value={form.session}
           setValue={(v: string) => setForm({ ...form, session: v })}
-          options={[
-            { name: "London" },
-            { name: "New York" },
-            { name: "Asian" },
-          ]}
+          options={[{ name: "London" }, { name: "New York" }, { name: "Asian" }]}
           palette={palette}
         />
 
@@ -213,7 +199,7 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
         />
       </div>
 
-      {/* === Images === */}
+      {/* Images */}
       <div className="grid sm:grid-cols-2 gap-4">
         {(["beforeImageUrl", "afterImageUrl"] as const).map((key) => (
           <div key={key} className="flex flex-col gap-2">
@@ -228,14 +214,14 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
               <img
                 src={form[key]}
                 alt={key}
-                className="rounded-lg w-full h-40 object-cover shadow-md border border-gray-600/20"
+                className="rounded-lg w-full h-40 object-cover border border-sky-400/20 shadow-md"
               />
             )}
           </div>
         ))}
       </div>
 
-      {/* === Reason === */}
+      {/* Reason */}
       <div className="flex items-start gap-2">
         <AlignLeft size={18} className="mt-2 text-sky-400" />
         <textarea
@@ -253,7 +239,7 @@ export default function TradeForm({ onAdd, disabled }: TradeFormProps) {
 
       {error && <p className="text-sm text-red-500">{error}</p>}
 
-      {/* === Submit === */}
+      {/* Submit */}
       <button
         type="submit"
         disabled={disabled || submitting}
@@ -321,10 +307,10 @@ function DropdownField({ label, value, setValue, options, palette }: any) {
           leaveTo="opacity-0"
         >
           <Listbox.Options
-            className="absolute mt-1 w-full rounded-md shadow-lg max-h-60 overflow-auto z-50"
+            className="absolute mt-1 w-full rounded-md shadow-lg max-h-60 overflow-auto z-50 border"
             style={{
-              background: palette.bg,
-              border: `1px solid ${palette.border}`,
+              background: "#0B0F14",
+              borderColor: palette.border,
             }}
           >
             {options.map((opt: any) => (
@@ -333,7 +319,7 @@ function DropdownField({ label, value, setValue, options, palette }: any) {
                 value={opt.name}
                 className={({ active }) =>
                   `cursor-pointer flex items-center justify-between px-3 py-2 text-sm ${
-                    active ? "bg-sky-500 text-white" : ""
+                    active ? "bg-sky-500/20 text-sky-300" : ""
                   }`
                 }
               >
@@ -343,7 +329,7 @@ function DropdownField({ label, value, setValue, options, palette }: any) {
                       {opt.icon}
                       {opt.name}
                     </span>
-                    {selected && <Check size={16} />}
+                    {selected && <Check size={16} className="text-sky-400" />}
                   </>
                 )}
               </Listbox.Option>

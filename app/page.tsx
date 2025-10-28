@@ -12,10 +12,10 @@ import Footer from "@/components/Footer";
 import LiveBitcoinPrice from "@/components/LiveBitcoinPrice";
 import AppShowcase from "@/components/AppShowcase";
 import FAQSection from "@/components/FAQSection";
-import DashboardShowcase3D from "@/components/DashboardShowcase3D";
 import Link from "next/link";
 import ComingFeatures from "@/components/ComingFeatures";
 import { Calculator, GraduationCap } from "lucide-react";
+import StatsWidgets from "@/components/StatsWidgets";
 
 export default function Home() {
   const { theme } = useTheme();
@@ -23,10 +23,10 @@ export default function Home() {
   const [price, setPrice] = useState(1.085);
   const [priceUp, setPriceUp] = useState(true);
 
-  // ✅ Prevent theme flash
+  // Prevent hydration flicker
   useEffect(() => setMounted(true), []);
 
-  // ✅ Simulate live price
+  // Simulate live price tick
   useEffect(() => {
     if (!mounted) return;
     const interval = setInterval(() => {
@@ -41,134 +41,128 @@ export default function Home() {
   }, [mounted]);
 
   if (!mounted)
-    return (
-      <div className="fixed inset-0 bg-[#0B0F14] dark:bg-[#F9FAFB] transition-none" />
-    );
+    return <div className="fixed inset-0 bg-[#0B0F14]" />;
 
   const isDark = theme === "dark";
-  const ACTIVE = getActiveColors(isDark);
+  const ACTIVE = getActiveColors(true); // Force dark neon as default look
 
   return (
     <AnimatePresence mode="wait">
       <motion.div
-        key={theme}
+        key="home"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.35, ease: "easeOut" }}
-        className={`relative min-h-screen flex flex-col overflow-hidden ${ACTIVE.text}`}
-        style={{ background: isDark ? "#0B0F14" : "#F9FAFB" }}
+        className="relative min-h-screen flex flex-col overflow-hidden text-[#E2E8F0]"
+        style={{
+          background:
+            "radial-gradient(circle at 20% 20%, #0B0F14 0%, #020617 100%)",
+        }}
       >
-        {/* === Navbar === */}
-        <Navbar isDark={isDark} />
+        {/* 🧭 Navbar */}
+        <Navbar />
 
-        {/* === Hero + Mockup === */}
+        {/* ⚡ Hero + Mockup */}
         <div className="flex flex-col lg:flex-row items-center justify-center flex-1 px-6 sm:px-10 lg:px-20 gap-10 sm:gap-16">
           <motion.div
             initial={{ opacity: 0, y: 40 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
+            transition={{ duration: 0.4 }}
             className="w-full lg:w-[50%]"
           >
-            <HeroSection isDark={isDark} />
+            <HeroSection  />
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.5, delay: 0.15, ease: "easeOut" }}
-            className="w-full lg:w-[45%]"
-          >
-            <IPhoneMockup
-              price={price}
-              priceUp={priceUp}
-              ACTIVE={ACTIVE}
-              isDark={isDark}
-            />
-          </motion.div>
-
-          </div>
-            <div className="flex flex-col items-center justify-center text-center pt-10">
-              <p className=" mb-6 text-sm sm:text-lg max-w-md">
-                Analyze your trades, calculate lot sizes, and manage risk smartly.
-              </p>
-
-              <Link href="/forex-calculator">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.97 }}
-                  className="
-                    flex items-center justify-center gap-2 sm:gap-3
-                    px-4 py-2.5 sm:px-6 sm:py-3
-                    rounded-lg sm:rounded-xl
-                    font-semibold text-base sm:text-lg
-                    bg-gradient-to-r from-sky-600 to-cyan-400
-                    text-white shadow-lg hover:opacity-90 transition
-                  "
-                >
-                  <Calculator size={18} className="sm:size-[22px]" />
-                  Open Forex Calculator
-                </motion.button>
-              </Link>
-            </div>
-
-
-
-        <SocialIcons ACTIVE={ACTIVE} />
-        <DashboardShowcase3D />
-
-        {/* === Live Price & App Showcase === */}
-        <LiveBitcoinPrice isDark={isDark} />
-        <AppShowcase isDark={isDark} />
-        
-        {/* === How to Use DC Trades Button (Elegant Glow Style) === */}
-        <div className="flex justify-center my-14 sm:my-20 px-4">
-          <Link href="/decree">
-            <motion.button
-              whileHover={{ scale: 1.07 }}
-              whileTap={{ scale: 0.96 }}
-              transition={{ type: "spring", stiffness: 220, damping: 15 }}
-              className={`relative overflow-hidden 
-                px-6 py-2.5 sm:px-10 sm:py-3 
-                text-base sm:text-lg 
-                font-semibold tracking-wide 
-                rounded-xl sm:rounded-2xl 
-                shadow-lg flex items-center gap-2 sm:gap-3 
-                ${
-                  isDark
-                    ? "bg-gradient-to-r from-cyan-500 via-sky-400 to-blue-500 text-white"
-                    : "bg-gradient-to-r from-amber-500 via-yellow-500 to-amber-600 text-white"
-                }`}
-              style={{
-                boxShadow: isDark
-                  ? "0 0 10px rgba(56,189,248,0.4)"
-                  : "0 0 10px rgba(234,179,8,0.35)",
-              }}
+          <div className="relative w-full lg:w-[45%] flex justify-center">
+            {/* 🔵 Glow Shadow Behind Phone */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 1, ease: "easeOut" }}
+              className="absolute inset-0 flex justify-center items-center"
             >
-              {/* Animated light sweep */}
-              <motion.span
-                initial={{ x: "-100%" }}
-                whileHover={{ x: "100%" }}
-                transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
-                className="absolute top-0 left-0 w-1/3 h-full bg-gradient-to-r from-transparent via-white/40 to-transparent"
-              />
+              <div className="w-[240px] sm:w-[300px] h-[500px] sm:h-[600px] rounded-[2.5rem] blur-[80px] opacity-40 bg-cyan-400/40" />
+            </motion.div>
 
-              {/* Icon + Text */}
-              <span className="relative z-10 flex items-center justify-center gap-2 sm:gap-3">
-                <GraduationCap className="w-5 h-5 sm:w-6 sm:h-6" strokeWidth={2.3} />
-                <span>How to Use DC Trades</span>
-              </span>
-            </motion.button>
-          </Link>
+            {/* 📱 The iPhone Mockup (on top) */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
+              className="relative z-10"
+            >
+              <IPhoneMockup price={price} priceUp={priceUp} ACTIVE={ACTIVE} />
+            </motion.div>
+          </div>
+
+
+
         </div>
 
+        {/* 👋 Welcome Heading */}
+        <div className="text-center mb-16">
+          <h1 className="text-3xl font-extrabold text-cyan-300 mb-4 drop-shadow-[0_0_15px_rgba(56,189,248,0.4)]">
+            Welcome to DC Trades
+          </h1>
+          <p className="text-slate-400 text-sm max-w-2xl mx-auto">
+            The home for smart, consistent, and data-driven traders.
+          </p>
+        </div>
+        
+        {/* 📊 Stats Widgets */}
+        <StatsWidgets />
 
-        <ComingFeatures isDark={isDark} />
+        {/* 💹 Forex Calculator CTA */}
+        <div className="flex flex-col items-center justify-center text-center pt-10">
+          <p className="mb-6 text-slate-400 text-sm sm:text-sm max-w-md">
+            Analyze your trades, calculate lot sizes, and manage risk smartly.
+          </p>
 
-        {/* === Footer === */}
+            <Link href="/forex-calculator">
+              <motion.button
+                whileHover={{
+                  scale: 1.07,
+                  boxShadow: "0 0 25px rgba(56,189,248,0.4)",
+                }}
+                whileTap={{ scale: 0.96 }}
+                transition={{ type: "spring", stiffness: 200, damping: 14 }}
+                className="
+                  flex items-center justify-center gap-3
+                  px-7 py-3.5
+                  rounded-2xl
+                  font-semibold text-lg tracking-wide
+                  text-white
+                  bg-gradient-to-r from-sky-500 via-cyan-400 to-emerald-400
+                  shadow-[0_0_20px_rgba(56,189,248,0.25)]
+                  hover:shadow-[0_0_30px_rgba(56,189,248,0.45)]
+                  hover:opacity-95
+                  active:scale-95
+                  transition-all duration-300
+                "
+              >
+                <Calculator size={22} className="drop-shadow-md" />
+                Open Forex Calculator
+              </motion.button>
+            </Link>
+
+        </div>
+
+        {/* 🌐 Social Icons */}
+        <SocialIcons  />
+
+
+        {/* 💰 Live Price + App Preview */}
+        <LiveBitcoinPrice isDark />
+        <AppShowcase  />
+
+        {/* 🚀 Coming Features */}
+        <ComingFeatures  />
+
+        {/* 🧩 Footer + FAQs */}
         <div className="mt-auto">
-          <FAQSection isDark={isDark} />
-          <Footer ACTIVE={ACTIVE} />
+          <FAQSection  />
+          <Footer  />
         </div>
       </motion.div>
     </AnimatePresence>

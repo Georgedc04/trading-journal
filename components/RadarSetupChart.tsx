@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useTheme } from "next-themes";
 import {
   Radar,
   RadarChart,
@@ -19,55 +18,45 @@ type SetupData = {
 };
 
 export default function RadarSetupChart({ setups }: { setups: SetupData[] }) {
-  const { theme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  // 🧱 Prevent hydration mismatch
+  // ✅ Prevent hydration mismatch
   useEffect(() => setMounted(true), []);
-
   if (!mounted) {
     return (
-      <div className="w-full h-[380px] flex items-center justify-center text-sm opacity-70">
+      <div className="w-full h-[380px] flex items-center justify-center text-sm text-gray-500">
         Loading radar chart...
       </div>
     );
   }
 
-  const isDark = theme === "dark";
+  // 🌙 Force Dark Mode as Default
+  const isDark = true;
 
-  // 🎨 Theme palette
-  const palette = isDark
-    ? {
-        text: "#E2E8F0",
-        accent: "#38BDF8",
-        fill: "rgba(56,189,248,0.35)",
-        grid: "rgba(255,255,255,0.15)",
-        glow: "rgba(56,189,248,0.4)",
-      }
-    : {
-        text: "#1E293B",
-        accent: "#2563EB",
-        fill: "rgba(37,99,235,0.25)",
-        grid: "rgba(0,0,0,0.1)",
-        glow: "rgba(37,99,235,0.35)",
-      };
+  // 🎨 Theme Palette (Dark only)
+  const palette = {
+    text: "#E2E8F0",
+    accent: "#38BDF8",
+    fill: "rgba(56,189,248,0.35)",
+    grid: "rgba(255,255,255,0.1)",
+    glow: "rgba(56,189,248,0.4)",
+  };
 
-  // ✅ Safe fallback data
+  // ✅ Safe Fallback Data
   const formattedData =
     setups && setups.length > 0
       ? setups
       : [
           { setup: "A+", percentage: 85 },
-          { setup: "A", percentage: 70 },
-          { setup: "B", percentage: 55 },
-          { setup: "C", percentage: 40 },
+          { setup: "A", percentage: 72 },
+          { setup: "B", percentage: 58 },
+          { setup: "C", percentage: 45 },
         ];
 
+  // 🔥 Find Top Performing Setup
   const topSetup =
     formattedData.length > 0
-      ? formattedData.reduce((a, b) =>
-          a.percentage >= b.percentage ? a : b
-        )
+      ? formattedData.reduce((a, b) => (a.percentage >= b.percentage ? a : b))
       : { setup: "—", percentage: 0 };
 
   return (
@@ -76,13 +65,7 @@ export default function RadarSetupChart({ setups }: { setups: SetupData[] }) {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6, ease: "easeOut" }}
       viewport={{ once: true }}
-      className="relative w-full h-[380px] flex flex-col items-center justify-center rounded-2xl p-5 border shadow-lg backdrop-blur-md overflow-hidden"
-      style={{
-        background: isDark
-          ? "linear-gradient(135deg, #0B0F14, #111827)"
-          : "linear-gradient(135deg, #FFFFFF, #E0F2FE)",
-        borderColor: palette.grid,
-      }}
+      className="relative w-full h-[380px] flex flex-col items-center justify-center rounded-2xl p-5 border border-cyan-400/20 shadow-[0_0_25px_rgba(56,189,248,0.1)] backdrop-blur-md overflow-hidden bg-gradient-to-br from-[#0B0F14] to-[#111827]"
     >
       {/* === Title === */}
       <h3
@@ -92,21 +75,21 @@ export default function RadarSetupChart({ setups }: { setups: SetupData[] }) {
         Setup Performance Radar
       </h3>
 
-      {/* === Glowing Pulse === */}
+      {/* === Background Glow === */}
       <motion.div
-        className="absolute rounded-full blur-[90px]"
+        className="absolute rounded-full blur-[100px]"
         style={{
           background: palette.glow,
-          width: "180px",
-          height: "180px",
+          width: "200px",
+          height: "200px",
           top: "45%",
           left: "50%",
           transform: "translate(-50%, -50%)",
-          opacity: 0.25,
+          opacity: 0.2,
         }}
         animate={{
-          scale: [1, 1.2, 1],
-          opacity: [0.15, 0.35, 0.15],
+          scale: [1, 1.15, 1],
+          opacity: [0.15, 0.3, 0.15],
         }}
         transition={{ repeat: Infinity, duration: 5, ease: "easeInOut" }}
       />
@@ -137,12 +120,12 @@ export default function RadarSetupChart({ setups }: { setups: SetupData[] }) {
           <Tooltip
             cursor={{ strokeDasharray: "3 3" }}
             contentStyle={{
-              background: isDark ? "#1E293B" : "#F9FAFB",
-              border: "none",
+              background: "#0B1220",
+              border: "1px solid rgba(56,189,248,0.3)",
               borderRadius: "10px",
               color: palette.text,
               fontSize: "13px",
-              boxShadow: `0 0 15px ${palette.fill}`,
+              boxShadow: `0 0 15px ${palette.glow}`,
             }}
           />
         </RadarChart>
@@ -150,13 +133,10 @@ export default function RadarSetupChart({ setups }: { setups: SetupData[] }) {
 
       {/* === Top Setup Label === */}
       <motion.div
-        className="relative mt-6 text-sm sm:text-base font-medium text-center px-4 py-2 rounded-md backdrop-blur-lg shadow-md border inline-block"
+        className="relative mt-6 text-sm sm:text-base font-medium text-center px-4 py-2 rounded-md backdrop-blur-lg shadow-md border border-cyan-400/20 inline-block"
         style={{
-          background: isDark
-            ? "rgba(56,189,248,0.1)"
-            : "rgba(37,99,235,0.1)",
+          background: "rgba(56,189,248,0.1)",
           color: palette.accent,
-          borderColor: palette.grid,
         }}
         animate={{
           opacity: [0.7, 1, 0.7],

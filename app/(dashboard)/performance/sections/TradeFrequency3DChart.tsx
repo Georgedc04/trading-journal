@@ -1,7 +1,6 @@
 "use client";
 
 import { useMemo } from "react";
-import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
 import {
   BarChart,
@@ -14,43 +13,25 @@ import {
   Cell,
 } from "recharts";
 import { ChartColumn } from "lucide-react";
-import useTrades from "../hook/useTrades"; // ✅ shared cached hook
+import useTrades from "../hook/useTrades";
 
 export default function Discipline3DChartSection() {
-  const { theme } = useTheme();
-  const isDark = theme === "dark";
   const { trades, loading } = useTrades();
 
-  // 🎨 Neon palette (more “teen” and 3D)
-  const palette = useMemo(
-    () =>
-      isDark
-        ? {
-            bg: "radial-gradient(circle at top left, #0F172A 0%, #020617 100%)",
-            border: "rgba(56,189,248,0.3)",
-            grid: "rgba(255,255,255,0.1)",
-            text: "#E2E8F0",
-            good: "#00FF88",
-            caution: "#FACC15",
-            bad: "#FF4D4D",
-            shadow: "0 0 20px rgba(56,189,248,0.4)",
-            glow: "rgba(0,255,200,0.15)",
-          }
-        : {
-            bg: "radial-gradient(circle at top left, #F0F9FF 0%, #DBEAFE 100%)",
-            border: "rgba(37,99,235,0.25)",
-            grid: "rgba(0,0,0,0.08)",
-            text: "#1E293B",
-            good: "#16A34A",
-            caution: "#EAB308",
-            bad: "#DC2626",
-            shadow: "0 0 15px rgba(37,99,235,0.2)",
-            glow: "rgba(37,99,235,0.15)",
-          },
-    [isDark]
-  );
+  // 🎨 Dark Neon Theme
+  const palette = {
+    bg: "radial-gradient(circle at top left, #0B0F14 0%, #111827 100%)",
+    border: "rgba(56,189,248,0.25)",
+    grid: "rgba(255,255,255,0.08)",
+    text: "#E2E8F0",
+    good: "#00FF88",
+    caution: "#FACC15",
+    bad: "#FF4D4D",
+    shadow: "0 0 10px rgba(56,189,248,0.3)",
+    glow: "rgba(0,255,200,0.15)",
+  };
 
-  // 🧮 Prepare daily trade counts
+  // 📊 Prepare daily trade counts
   const chartData = useMemo(() => {
     if (!Array.isArray(trades) || trades.length === 0) return [];
     const grouped: Record<string, { date: string; count: number }> = {};
@@ -64,12 +45,10 @@ export default function Discipline3DChartSection() {
     );
   }, [trades]);
 
-  // 🎯 3D gradient color logic
+  // 🎯 Dynamic color based on trade count
   const getColor = (count: number) => {
-    if (count <= 2)
-      return "url(#barGood)";
-    if (count === 3)
-      return "url(#barCaution)";
+    if (count <= 2) return "url(#barGood)";
+    if (count === 3) return "url(#barCaution)";
     return "url(#barBad)";
   };
 
@@ -79,7 +58,7 @@ export default function Discipline3DChartSection() {
       whileInView={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
       viewport={{ once: true }}
-      className="relative w-full max-w-5xl mx-auto rounded-2xl p-6 border backdrop-blur-md mt-10 overflow-hidden"
+      className="relative w-full max-w-5xl mx-auto rounded-2xl p-6 border mt-10 overflow-hidden"
       style={{
         background: palette.bg,
         borderColor: palette.border,
@@ -93,7 +72,7 @@ export default function Discipline3DChartSection() {
           background: palette.glow,
           width: "250px",
           height: "250px",
-          top: "20%",
+          top: "25%",
           left: "70%",
           transform: "translate(-50%, -50%)",
         }}
@@ -111,21 +90,22 @@ export default function Discipline3DChartSection() {
           Daily Trading Discipline
         </h2>
       </div>
-
-      <p className="text-sm mb-4 opacity-75">
+      <p className="text-sm mb-4 text-slate-400">
         Stay cool. Stay smart. Keep it under <b>3 trades/day</b> 💎
       </p>
 
-      {/* ⚡ Skeleton shimmer */}
+      {/* ⚡ Loading / Empty Data */}
       {loading ? (
-        <div className="h-[350px] w-full rounded-xl animate-pulse bg-gradient-to-r from-slate-200/10 to-slate-400/20" />
+        <div className="h-[350px] w-full rounded-xl animate-pulse bg-gradient-to-r from-slate-800/20 to-slate-700/20" />
       ) : chartData.length === 0 ? (
-        <p className="text-center text-sm opacity-70">No trade data available.</p>
+        <p className="text-center text-sm text-slate-400">
+          No trade data available.
+        </p>
       ) : (
         <div className="w-full h-[360px]">
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={chartData} barSize={30}>
-              {/* 💡 3D Gradient Layers */}
+              {/* ✅ Gradients */}
               <defs>
                 <linearGradient id="barGood" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0%" stopColor="#00FFAA" stopOpacity={1} />
@@ -144,18 +124,19 @@ export default function Discipline3DChartSection() {
               <CartesianGrid strokeDasharray="3 3" stroke={palette.grid} />
               <XAxis
                 dataKey="date"
-                stroke={palette.text}
                 tick={{ fill: palette.text, fontSize: 12 }}
                 tickMargin={8}
+                axisLine={{ stroke: "rgba(56,189,248,0.2)" }}
               />
               <YAxis
-                stroke={palette.text}
                 tick={{ fill: palette.text, fontSize: 12 }}
                 domain={[0, 8]}
+                axisLine={{ stroke: "rgba(56,189,248,0.2)" }}
               />
               <Tooltip
+                cursor={{ fill: "rgba(56,189,248,0.08)" }}
                 contentStyle={{
-                  background: isDark ? "#1E293B" : "rgba(37,99,235,0.2)",
+                  background: "rgba(15,23,42,0.95)",
                   border: `1px solid ${palette.border}`,
                   borderRadius: "10px",
                   color: palette.text,
@@ -164,13 +145,8 @@ export default function Discipline3DChartSection() {
                 labelStyle={{ fontWeight: 600 }}
               />
 
-              {/* 🧊 3D Bars with Hover Lift */}
-              <Bar
-                dataKey="count"
-                name="Trades Taken"
-                radius={[8, 8, 4, 4]}
-                style={{ filter: "drop-shadow(0 5px 10px rgba(0,0,0,0.5))" }}
-              >
+              {/* 🧊 Bars with Neon Hover */}
+              <Bar dataKey="count" radius={[8, 8, 4, 4]}>
                 {chartData.map((entry, i) => (
                   <Cell
                     key={i}
@@ -178,6 +154,7 @@ export default function Discipline3DChartSection() {
                     style={{
                       transition: "all 0.3s ease",
                       cursor: "pointer",
+                      transformOrigin: "bottom",
                     }}
                     onMouseEnter={(e) => {
                       (e.target as SVGElement).style.transform = "scale(1.1)";
@@ -187,7 +164,7 @@ export default function Discipline3DChartSection() {
                     onMouseLeave={(e) => {
                       (e.target as SVGElement).style.transform = "scale(1)";
                       (e.target as SVGElement).style.filter =
-                        "drop-shadow(0 5px 10px rgba(0,0,0,0.4))";
+                        "drop-shadow(0 4px 8px rgba(0,0,0,0.5))";
                     }}
                   />
                 ))}
@@ -198,7 +175,7 @@ export default function Discipline3DChartSection() {
       )}
 
       {/* === Legend === */}
-      <div className="flex justify-center gap-6 mt-6 text-sm font-medium">
+      <div className="flex justify-center gap-6 mt-6 text-sm font-medium text-slate-300">
         {[
           { color: palette.good, label: "1–2 Trades (Disciplined)" },
           { color: palette.caution, label: "3 Trades (Borderline)" },
@@ -209,7 +186,7 @@ export default function Discipline3DChartSection() {
               className="w-3 h-3 rounded-full shadow-md"
               style={{ background: color }}
             ></span>
-            <span className="opacity-80">{label}</span>
+            <span className="opacity-85">{label}</span>
           </span>
         ))}
       </div>

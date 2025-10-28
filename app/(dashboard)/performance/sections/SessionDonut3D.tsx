@@ -55,14 +55,14 @@ export default function SessionDonut3D() {
 
   // Visual palette tuned for dark/light
   const palette = {
-    bg: isDark ? "rgba(6,8,15,0.6)" : "rgba(255,255,255,0.9)",
-    cardBorder: isDark ? "rgba(56,189,248,0.12)" : "rgba(37,99,235,0.12)",
-    winGradientStart: isDark ? "#22c55e" : "#16A34A",
-    winGradientEnd: isDark ? "#06b6d4" : "#34D399",
+    bg: isDark ? "rgba(6,8,15,0.6)" : "rgba(6,8,15,0.6)",
+    cardBorder: isDark ? "rgba(56,189,248,0.12)" : "rgba(56,189,248,0.12)",
+    winGradientStart: isDark ? "#22c55e" : "#22c55e",
+    winGradientEnd: isDark ? "#06b6d4" : "#06b6d4",
     lossGradientStart: isDark ? "#fb7185" : "#ef4444",
-    lossGradientEnd: isDark ? "#ef4444" : "#f87171",
-    accentGlow: isDark ? "rgba(56,189,248,0.08)" : "rgba(37,99,235,0.06)",
-    text: isDark ? "#E6EEF7" : "#0f172a",
+    lossGradientEnd: isDark ? "#ef4444" : "#ef4444",
+    accentGlow: isDark ? "rgba(56,189,248,0.08)" : "rgba(56,189,248,0.08)",
+    text: isDark ? "#E6EEF7" : "#E6EEF7",
   };
 
   // For each session produce data array suitable for recharts
@@ -194,7 +194,7 @@ export default function SessionDonut3D() {
                           return (
                             <Cell
                               key={idx}
-                              fill={isDark ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)"}
+                              fill={isDark ? "rgba(255,255,255,0.04)" : "rgba(255,255,255,0.04)"}
                             />
                           );
                         }

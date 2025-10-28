@@ -3,8 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@clerk/nextjs/server";
 
 /* -------------------- ⚡ CONFIG -------------------- */
-// Cache response for 1 minute and reuse connections safely
-export const revalidate = 60;
+export const revalidate = 0; // no cache
 export const dynamic = "force-dynamic";
 
 /* -------------------- 🟢 GET: Fetch Trades for a Journal -------------------- */
@@ -29,7 +28,7 @@ export async function GET(req: Request) {
     if (!journal)
       return NextResponse.json({ error: "Journal not found" }, { status: 403 });
 
-    // ✅ Fetch trades — only necessary fields
+    // ✅ Fetch trades — all necessary fields
     const trades = await prisma.trade.findMany({
       where: { journalId: Number(journalId) },
       orderBy: { date: "asc" },
@@ -47,29 +46,29 @@ export async function GET(req: Request) {
       },
     });
 
-    // ✅ Respond quickly + allow browser caching
+    console.log(`✅ Trades fetched: ${trades.length} for journal ${journalId}`);
+
     return NextResponse.json(trades, {
       status: 200,
       headers: {
-        "Cache-Control": "public, s-maxage=30, stale-while-revalidate=120",
+        // 🚀 always fetch fresh, no stale data
+        "Cache-Control": "no-store",
       },
     });
   } catch (err: any) {
     console.error("🔥 GET /api/trades error:", err);
-    // handle connection timeouts cleanly
-    if (err.code === "P2024") {
+
+    if (err.code === "P2024" || err.message?.includes("Response from the Engine")) {
       return NextResponse.json(
-        { error: "Database temporarily overloaded. Please retry." },
+        { error: "Database temporarily unreachable. Please retry." },
         { status: 503 }
       );
     }
+
     return NextResponse.json(
       { error: "Server error while fetching trades" },
       { status: 500 }
     );
-  } finally {
-    // ✅ ensures Prisma releases connection faster
-    await prisma.$disconnect().catch(() => {});
   }
 }
 
@@ -109,7 +108,6 @@ export async function PUT(req: Request) {
         { status: 404 }
       );
 
-    // ✅ Validate numeric result
     const numericResult = Number(result);
     if (Number.isNaN(numericResult))
       return NextResponse.json(
@@ -122,7 +120,6 @@ export async function PUT(req: Request) {
         ? val
         : null;
 
-    // ✅ Update trade efficiently
     const updatedTrade = await prisma.trade.update({
       where: { id: Number(id) },
       data: {
@@ -145,7 +142,5 @@ export async function PUT(req: Request) {
       { error: err.message || "Server error while updating trade" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect().catch(() => {});
   }
 }

@@ -2,20 +2,22 @@
 import { useEffect, useMemo, useState } from "react";
 import { SignedIn, SignedOut, RedirectToSignIn, useUser } from "@clerk/nextjs";
 import { motion } from "framer-motion";
-import { useTheme } from "next-themes";
-import { Sun, Moon } from "lucide-react";
 
 import AccountHeader from "@/components/AccountHeader";
 import TradeForm from "@/components/TradeForm";
 import TradeTable from "@/components/TradeTable";
 import PerformanceOverview from "@/components/PerformanceOverview";
 import JournalHeader from "./components/JournalHeader";
+import JournalModal from "./components/JournalModal";
 import Toast from "./components/Toast";
+import SessionHeader from "@/components/SessionHeader";
+import DashboardAnnouncements from "./components/DashboardAnnouncements";
+import PlanUpgrade from "@/components/PlanUpgrade";
 
 export default function DashboardPage() {
   const { user } = useUser();
-  const { theme, setTheme } = useTheme();
 
+  const [plan, setPlan] = useState<"FREE" | "NORMAL" | "PRO">("FREE");
   const [trades, setTrades] = useState<any[]>([]);
   const [journals, setJournals] = useState<any[]>([]);
   const [selectedJournal, setSelectedJournal] = useState<number | null>(null);
@@ -25,17 +27,34 @@ export default function DashboardPage() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string>("");
   const [toast, setToast] = useState<string>("");
+  const [showJournalModal, setShowJournalModal] = useState(false);
 
-  // 🧠 Fetch all journals
+  /* === Fetch User Plan === */
+  const fetchUserPlan = async () => {
+    try {
+      const res = await fetch("/api/user/plan");
+      if (!res.ok) return;
+      const data = await res.json();
+      setPlan(data.plan || "FREE");
+    } catch {
+      console.warn("Could not fetch plan, defaulting to FREE");
+      setPlan("FREE");
+    }
+  };
+
+  /* === Fetch Journals === */
   const fetchJournals = async () => {
     try {
       const res = await fetch("/api/journals");
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Failed to fetch journals");
-
       setJournals(data);
 
-      // ✅ Restore saved journal ID from localStorage
+      if (data.length === 0) {
+        setShowJournalModal(true);
+        return;
+      }
+
       const savedId = localStorage.getItem("selected_journal_id");
       if (savedId) {
         const parsedId = Number(savedId);
@@ -45,16 +64,13 @@ export default function DashboardPage() {
           return;
         }
       }
-
-      // Default to first journal if none saved
-      if (data.length > 0) setSelectedJournal(data[0].id);
-    } catch (err) {
-      console.error(err);
+      setSelectedJournal(data[0].id);
+    } catch {
       setError("Couldn't load journals");
     }
   };
 
-  // 📊 Fetch trades for selected journal
+  /* === Fetch Trades === */
   const fetchTrades = async (journalId: number) => {
     try {
       setLoading(true);
@@ -62,20 +78,35 @@ export default function DashboardPage() {
       const data = await res.json();
       if (!res.ok) throw new Error("Failed to fetch trades");
       setTrades(data);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setError("Couldn't fetch trades");
     } finally {
       setLoading(false);
     }
   };
 
-  // 🚀 Load journals on mount
+  /* === Effects === */
   useEffect(() => {
+    fetchUserPlan();
     fetchJournals();
   }, []);
 
-  // 🔁 Fetch trades whenever selected journal changes
+  // detect upgrade or error messages in URL
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("success") === "plan_upgraded") {
+      setToast("🎉 Plan successfully upgraded!");
+      fetchUserPlan();
+      params.delete("success");
+      window.history.replaceState({}, "", "/dashboard");
+    }
+    if (params.get("error")) {
+      setToast("❌ There was an issue processing your upgrade. Please try again.");
+      params.delete("error");
+      window.history.replaceState({}, "", "/dashboard");
+    }
+  }, []);
+
   useEffect(() => {
     if (selectedJournal) {
       fetchTrades(selectedJournal);
@@ -83,7 +114,6 @@ export default function DashboardPage() {
     }
   }, [selectedJournal]);
 
-  // ✅ Save selected journal details for Performance Page
   useEffect(() => {
     if (selectedJournal && journals.length > 0) {
       const current = journals.find((j) => j.id === selectedJournal);
@@ -94,9 +124,16 @@ export default function DashboardPage() {
     }
   }, [selectedJournal, journals]);
 
-  // ➕ Add Trade
+  /* === CRUD === */
   const handleAdd = async (payload: any) => {
-    if (!selectedJournal) return alert("Select a journal first");
+    if (!selectedJournal) return setToast("⚠️ Please create or select a journal first.");
+
+    // Free plan trade limit
+    if (plan === "FREE" && trades.length >= 10) {
+      setToast("🚫 Free plan limit reached (10 trades). Upgrade to add more.");
+      return;
+    }
+
     try {
       setSaving(true);
       const res = await fetch("/api/trades/add", {
@@ -115,7 +152,6 @@ export default function DashboardPage() {
     }
   };
 
-  // ✏️ Edit Trade
   const handleEdit = async (payload: any) => {
     try {
       setSaving(true);
@@ -138,7 +174,6 @@ export default function DashboardPage() {
     }
   };
 
-  // 🗑️ Delete Trade
   const handleDelete = async (id: number) => {
     try {
       setSaving(true);
@@ -154,12 +189,30 @@ export default function DashboardPage() {
     }
   };
 
-  // 💰 Calculate Total Balance
+  /* === Balance === */
   const numericAccount = Number(accountSize) || 0;
-  const totalBalance = useMemo(
-    () => numericAccount + trades.reduce((sum, t) => sum + (t.result || 0), 0),
-    [numericAccount, trades]
-  );
+  const totalBalance = useMemo(() => {
+    const total =
+      numericAccount + trades.reduce((sum, t) => sum + (Number(t.result) || 0), 0);
+    return isNaN(total) ? 0 : Number(total.toFixed(2));
+  }, [numericAccount, trades]);
+
+  /* === Palette === */
+  const palette = {
+    bg: "radial-gradient(circle at top left, #0B0F14, #111827)",
+    card: "#111827",
+    text: "#E2E8F0",
+    accent: "#38BDF8",
+    border: "rgba(56,189,248,0.25)",
+    shadow: "0 0 25px rgba(56,189,248,0.15)",
+  };
+
+  const progressColor =
+    trades.length >= 9
+      ? "bg-gradient-to-r from-red-500 to-red-700"
+      : trades.length >= 6
+      ? "bg-gradient-to-r from-yellow-400 to-orange-500"
+      : "bg-gradient-to-r from-cyan-400 to-blue-500";
 
   return (
     <>
@@ -172,117 +225,140 @@ export default function DashboardPage() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.4 }}
-          className={`min-h-screen flex flex-col items-center transition-colors duration-500 ${
-            theme === "dark"
-              ? "bg-[#0b0f14] text-gray-100"
-              : "bg-gray-50 text-gray-900"
-          }`}
+          className="min-h-screen flex flex-col items-center"
+          style={{ background: palette.bg, color: palette.text }}
         >
-          {/* === Main Content (max 14-inch width) === */}
           <div className="w-full max-w-[1344px] p-5 flex flex-col gap-6">
+            <DashboardAnnouncements />
+            <SessionHeader username={user?.firstName || "Trader"} />
 
-            {/* === Header === */}
-            <div className="flex justify-between items-center">
-              <JournalHeader
-                user={user}
-                journals={journals}
-                selectedJournal={selectedJournal}
-                setSelectedJournal={setSelectedJournal}
-                refreshJournals={fetchJournals}
-                setToast={setToast}
-              />
-
-              {/* 🌗 Theme Toggle (Sun / Moon) */}
-              <motion.button
-                whileHover={{ scale: 1.1 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
-                className={`p-2 rounded-full border transition-all duration-300 ${
-                  theme === "dark"
-                    ? "border-emerald-400/40 text-emerald-400 hover:bg-emerald-400/10"
-                    : "border-blue-600/40 text-blue-600 hover:bg-blue-600/10"
+            {/* Plan Info */}
+            <div className="text-center text-sm opacity-80">
+              Current Plan:{" "}
+              <span
+                className={`font-semibold ${
+                  plan === "PRO"
+                    ? "text-yellow-400"
+                    : plan === "NORMAL"
+                    ? "text-emerald-400"
+                    : "text-gray-400"
                 }`}
-                aria-label="Toggle theme"
               >
-                {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
-              </motion.button>
+                {plan}
+              </span>
             </div>
 
-            {/* === Account Info === */}
-            <AccountHeader
-              accountSize={accountSize}
-              targetPercent={targetPercent}
-              setAccountSize={setAccountSize}
-              setTargetPercent={setTargetPercent}
-              balance={totalBalance}
-            />
-
-            {/* === Performance Overview === */}
-            <PerformanceOverview
-              trades={trades}
-              accountSize={accountSize}
-              targetPercent={targetPercent}
-            />
-
-            {/* === Add Trade Section === */}
-            <section
-              className={`border rounded-xl sm:rounded-2xl shadow-md 
-                 transition-all duration-300 
-                mb-4 sm:mb-5 mt-4 sm:mt-5 hover:shadow-lg w-full max-w-full overflow-x-auto 
-                ${
-                  theme === "dark"
-                    ? "bg-[#111827] border-gray-700"
-                    : "bg-white border-gray-200"
-                }`}
-            >
-              <div className="w-full max-w-md sm:max-w-none mx-auto">
-                <TradeForm onAdd={handleAdd} disabled={saving} />
-                {error && (
-                  <p className="text-red-500 text-xs sm:text-sm mt-3 italic flex items-center gap-1">
-                    ⚠️ {error}
-                  </p>
-                )}
+            {/* === Free Plan Limit === */}
+            {plan === "FREE" && trades.length >= 10 ? (
+              <div className="mt-6 text-center">
+                <p className="text-gray-400 text-sm mb-3">
+                  🚫 You’ve reached your <b>Free Plan</b> limit of <b>10 trades</b>.
+                  Upgrade to continue adding more.
+                </p>
+                <PlanUpgrade />
               </div>
-            </section>
+            ) : (
+              <>
+                {/* Progress Bar for Free Plan */}
+                {plan === "FREE" && (
+                  <div className="w-full mt-3 mb-2">
+                    <div className="text-xs text-gray-400 text-center mb-1">
+                      {trades.length} / 10 trades used
+                    </div>
+                    <div className="w-full bg-gray-800 rounded-full h-2 overflow-hidden">
+                      <div
+                        className={`${progressColor} h-2 transition-all`}
+                        style={{ width: `${(trades.length / 10) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                )}
 
-
-            {/* === Trade History Section === */}
-            <section
-              className={`border rounded-2xl shadow-md  transition-all duration-300 hover:shadow-lg ${
-                theme === "dark"
-                  ? "bg-[#111827] border-gray-700"
-                  : "bg-white border-gray-200"
-              }`}
-            >
-              {loading ? (
-                <div className="flex flex-col items-center justify-center py-10">
-                  <div className="h-5 w-40 rounded-md bg-gradient-to-r from-gray-600 via-gray-500 to-gray-600 animate-pulse mb-2" />
-                  <p className="text-sm text-gray-400 animate-pulse">
-                    Loading trades...
-                  </p>
-                </div>
-              ) : trades.length > 0 ? (
-                <TradeTable
-                  trades={trades}
-                  onDelete={handleDelete}
-                  onEdit={handleEdit}
+                {/* Journal & Trades */}
+                <JournalHeader
+                  user={user}
+                  journals={journals}
+                  selectedJournal={selectedJournal}
+                  setSelectedJournal={setSelectedJournal}
+                  refreshJournals={fetchJournals}
+                  setToast={setToast}
                 />
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center opacity-70">
-                  <p className="italic text-sm sm:text-base">
-                    No trades recorded yet.
-                  </p>
-                  <p className="text-xs text-gray-400 mt-1">
-                    Add your first trade above ⬆️
-                  </p>
-                </div>
-              )}
-            </section>
 
-            {/* ✅ Toast Notification */}
-            <Toast message={toast} />
+                <AccountHeader
+                  accountSize={accountSize}
+                  targetPercent={targetPercent}
+                  setAccountSize={setAccountSize}
+                  setTargetPercent={setTargetPercent}
+                  balance={totalBalance}
+                />
+
+                <PerformanceOverview
+                  trades={trades}
+                  accountSize={accountSize}
+                  targetPercent={targetPercent}
+                />
+
+                <section
+                  className="border rounded-2xl shadow-md"
+                  style={{
+                    background: palette.card,
+                    borderColor: palette.border,
+                    boxShadow: palette.shadow,
+                  }}
+                >
+                  <TradeForm onAdd={handleAdd} disabled={saving} />
+                  {error && (
+                    <p className="text-red-500 text-xs sm:text-sm mt-3 italic flex items-center gap-1">
+                      ⚠️ {error}
+                    </p>
+                  )}
+                </section>
+
+                <section
+                  className="border rounded-2xl shadow-md"
+                  style={{
+                    background: palette.card,
+                    borderColor: palette.border,
+                    boxShadow: palette.shadow,
+                  }}
+                >
+                  {loading ? (
+                    <div className="flex flex-col items-center justify-center py-10 text-gray-400 animate-pulse">
+                      <div className="h-5 w-40 rounded-md bg-sky-900/30 mb-2" />
+                      <p className="text-sm">Loading trades...</p>
+                    </div>
+                  ) : trades.length > 0 ? (
+                    <TradeTable
+                      trades={trades}
+                      onDelete={handleDelete}
+                      onEdit={handleEdit}
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center py-12 text-center opacity-70">
+                      <p className="italic text-sm sm:text-base">
+                        No trades recorded yet.
+                      </p>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Add your first trade above ⬆️
+                      </p>
+                    </div>
+                  )}
+                </section>
+
+                <Toast message={toast} />
+              </>
+            )}
           </div>
         </motion.div>
+
+        {/* Journal Modal */}
+        {showJournalModal && (
+          <JournalModal
+            closeModal={() => setShowJournalModal(false)}
+            refreshJournals={fetchJournals}
+            setToast={setToast}
+          />
+        )}
       </SignedIn>
     </>
   );
