@@ -22,10 +22,16 @@ export async function GET() {
     const totalUsers = await prisma.user.count();
     const totalJournals = await prisma.journalAccount.count();
 
-    // 🕒 Users active in the last 24 hours (recently created/updated journals)
+    // 🕒 Users active in the last 24 hours (recently updated journals only)
     const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
     const activeToday = await prisma.journalAccount.count({
-      where: { updatedAt: { gte: since } },
+      where: {
+        updatedAt: {
+          not: null, // ✅ Avoids Prisma error with nullable field
+          gte: since,
+        },
+      },
     });
 
     // ✅ 3. Generate recent trade logs
@@ -43,8 +49,7 @@ export async function GET() {
       time: new Date(trade.createdAt).toLocaleString(),
       user: trade.journal.user?.email || "Unknown",
       action: `Logged a ${trade.direction} trade on ${trade.pair}`,
-      status:
-        Number(trade.result) >= 0 ? "Success" : "Loss",
+      status: Number(trade.result) >= 0 ? "Success" : "Loss",
     }));
 
     // ✅ 4. Return structured JSON
@@ -62,7 +67,7 @@ export async function GET() {
 
     return NextResponse.json(report);
   } catch (err: any) {
-    console.error("Admin Reports API error:", err);
+    console.error("🔥 Admin Reports API error:", err);
     return NextResponse.json(
       { error: "Internal Server Error" },
       { status: 500 }
