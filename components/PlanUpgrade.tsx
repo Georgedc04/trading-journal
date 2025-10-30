@@ -30,7 +30,7 @@ export default function PlanUpgrade() {
       setLoading(null);
 
       if (data.payment_url) {
-        window.location.href = data.payment_url; // redirect to NOWPayments
+        window.location.href = data.payment_url;
       } else {
         setMessage(`❌ ${data.error || "Failed to start payment."}`);
       }
@@ -54,7 +54,7 @@ export default function PlanUpgrade() {
     {
       name: "Normal Plan",
       icon: <Zap className="text-emerald-400" size={26} />,
-      monthly: "$7.5 / 2 months",
+      monthly: "$10 / 3 months",
       yearly: "$30 / year",
       features: [
         "✅ Unlimited trades",
@@ -67,7 +67,7 @@ export default function PlanUpgrade() {
     {
       name: "Pro Plan",
       icon: <Crown className="text-yellow-400" size={26} />,
-      monthly: "$7.5 / month",
+      monthly: "$15 / 3 months",
       yearly: "$50 / year",
       features: [
         "✅ Unlimited journals & trades",
@@ -135,7 +135,9 @@ export default function PlanUpgrade() {
                       : "bg-gradient-to-r from-sky-500 to-cyan-500 hover:opacity-90"
                   }`}
                 >
-                  {loading === `${p.plan}_month` ? "Processing..." : "Monthly"}
+                  {loading === `${p.plan}_month`
+                    ? "Processing..."
+                    : "3-Month Plan"}
                 </button>
 
                 <button
@@ -147,7 +149,9 @@ export default function PlanUpgrade() {
                       : "bg-gradient-to-r from-cyan-500 to-blue-500 hover:opacity-90"
                   }`}
                 >
-                  {loading === `${p.plan}_year` ? "Processing..." : "Yearly"}
+                  {loading === `${p.plan}_year`
+                    ? "Processing..."
+                    : "Yearly Plan"}
                 </button>
               </div>
             )}

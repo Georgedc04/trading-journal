@@ -15,12 +15,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Updated prices (stable & above $7 min)
+    // ✅ Updated pricing (safe against NOWPayments minimums)
     const prices: Record<string, number> = {
-      NORMAL_month: 7.5,   // 2 months plan for $7.5 USDT
-      NORMAL_year: 30,     // yearly $30
-      PRO_month: 7.5,      // monthly $7.5 USDT
-      PRO_year: 50,        // yearly $50 USDT
+      NORMAL_month: 10,  // 3 months
+      NORMAL_year: 30,
+      PRO_month: 15,     // 3 months
+      PRO_year: 50,
     };
 
     const price_amount = prices[`${plan}_${duration}`];
@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         price_amount,
         price_currency: "usd",
-        pay_currency: "usdttrc20",
+        pay_currency: "usdttrc20", // stable network
         order_id: `${plan}_${duration}_${Date.now()}`,
         order_description: `${plan} ${duration} subscription`,
         customer_email: email || "user@example.com",
@@ -60,7 +60,6 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Return invoice link
     return NextResponse.json({ payment_url: data.invoice_url });
   } catch (err) {
     console.error("🔥 Payment creation failed:", err);

@@ -1,12 +1,35 @@
 import { NextResponse } from "next/server";
 
+const BASE_URL =
+  process.env.NEXT_PUBLIC_APP_URL ||
+  "https://trading-journal-inky-alpha.vercel.app";
+
 export async function POST(req: Request) {
   try {
-    const { amount, email, plan } = await req.json();
+    const { plan, duration, email } = await req.json();
 
-    if (!amount || !email || !plan)
-      return NextResponse.json({ error: "Missing fields" }, { status: 400 });
+    // ✅ Check required fields
+    if (!plan || !duration || !email) {
+      return NextResponse.json(
+        { error: "Missing plan, duration, or email" },
+        { status: 400 }
+      );
+    }
 
+    // ✅ Define pricing (updated)
+    const prices: Record<string, number> = {
+      NORMAL_month: 10, // 3 months
+      NORMAL_year: 30,
+      PRO_month: 15, // 3 months
+      PRO_year: 50,
+    };
+
+    const price_amount = prices[`${plan}_${duration}`];
+    if (!price_amount) {
+      return NextResponse.json({ error: "Invalid plan or duration" }, { status: 400 });
+    }
+
+    // ✅ Create invoice on NOWPayments
     const res = await fetch("https://api.nowpayments.io/v1/invoice", {
       method: "POST",
       headers: {
@@ -14,19 +37,31 @@ export async function POST(req: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        price_amount: amount,
+        price_amount,
         price_currency: "usd",
+        pay_currency: "usdttrc20", // stable network (USDT TRC20)
         order_id: `dc-trades-${Date.now()}`,
-        order_description: `${plan} Plan Subscription`,
+        order_description: `${plan} ${duration} plan subscription`,
         customer_email: email,
-        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/api/plans/confirm?plan=${plan}`,
-        cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard?cancel=true`,
+        ipn_callback_url: `${BASE_URL}/api/payments/ipn`,
+        success_url: `${BASE_URL}/dashboard?success=${plan}_${duration}`,
+        cancel_url: `${BASE_URL}/plans?cancelled=true`,
       }),
     });
 
     const data = await res.json();
-    if (!res.ok) throw new Error(data.message || "Payment creation failed");
-    return NextResponse.json(data);
+
+    // ✅ Handle errors
+    if (!res.ok || !data.invoice_url) {
+      console.error("❌ NOWPayments error:", data);
+      return NextResponse.json(
+        { error: data.message || "Failed to create invoice" },
+        { status: 400 }
+      );
+    }
+
+    // ✅ Return payment URL to frontend
+    return NextResponse.json({ payment_url: data.invoice_url });
   } catch (err: any) {
     console.error("💥 Payment API error:", err);
     return NextResponse.json(
