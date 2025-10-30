@@ -19,14 +19,18 @@ export default function PlanUpgrade() {
       const res = await fetch("/api/plans/create-subscription", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ plan, duration, email: user?.primaryEmailAddress?.emailAddress }),
+        body: JSON.stringify({
+          plan,
+          duration,
+          email: user?.primaryEmailAddress?.emailAddress || "user@example.com",
+        }),
       });
 
       const data = await res.json();
       setLoading(null);
 
       if (data.payment_url) {
-        window.location.href = data.payment_url; // 🔁 redirect to NOWPayments checkout
+        window.location.href = data.payment_url; // redirect to NOWPayments
       } else {
         setMessage(`❌ ${data.error || "Failed to start payment."}`);
       }
@@ -50,7 +54,7 @@ export default function PlanUpgrade() {
     {
       name: "Normal Plan",
       icon: <Zap className="text-emerald-400" size={26} />,
-      monthly: "$6 / 2 months",
+      monthly: "$7.5 / 2 months",
       yearly: "$30 / year",
       features: [
         "✅ Unlimited trades",
@@ -63,7 +67,7 @@ export default function PlanUpgrade() {
     {
       name: "Pro Plan",
       icon: <Crown className="text-yellow-400" size={26} />,
-      monthly: "$6 / month",
+      monthly: "$7.5 / month",
       yearly: "$50 / year",
       features: [
         "✅ Unlimited journals & trades",

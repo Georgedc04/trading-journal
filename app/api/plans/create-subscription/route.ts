@@ -15,23 +15,22 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Updated pricing + slight buffer to bypass "less than minimal" crypto issue
+    // ✅ Updated prices (stable & above $7 min)
     const prices: Record<string, number> = {
-      NORMAL_month: 6.1, // ($3/mo * 2) + buffer
-      NORMAL_year: 30.1,
-      PRO_month: 6.1,
-      PRO_year: 50.1,
+      NORMAL_month: 7.5,   // 2 months plan for $7.5 USDT
+      NORMAL_year: 30,     // yearly $30
+      PRO_month: 7.5,      // monthly $7.5 USDT
+      PRO_year: 50,        // yearly $50 USDT
     };
 
     const price_amount = prices[`${plan}_${duration}`];
-    if (!price_amount) {
+    if (!price_amount)
       return NextResponse.json(
         { error: "Invalid plan or duration" },
         { status: 400 }
       );
-    }
 
-    // ✅ Create NOWPayments invoice (public-safe endpoint)
+    // ✅ Create NOWPayments invoice
     const response = await fetch("https://api.nowpayments.io/v1/invoice", {
       method: "POST",
       headers: {
@@ -41,7 +40,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         price_amount,
         price_currency: "usd",
-        pay_currency: "usdttrc20", // Recommended for stability and low fees
+        pay_currency: "usdttrc20",
         order_id: `${plan}_${duration}_${Date.now()}`,
         order_description: `${plan} ${duration} subscription`,
         customer_email: email || "user@example.com",
@@ -61,7 +60,7 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Return valid payment link
+    // ✅ Return invoice link
     return NextResponse.json({ payment_url: data.invoice_url });
   } catch (err) {
     console.error("🔥 Payment creation failed:", err);
