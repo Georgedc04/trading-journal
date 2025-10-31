@@ -25,7 +25,7 @@ export async function POST(req: Request) {
 
     const planId = planMap[`${plan}_${duration}`];
 
-    // ✅ 2. Subscription attempt
+    // ✅ 2. Try creating subscription (if plan ID exists)
     if (planId) {
       const subscriptionRes = await fetch("https://api.nowpayments.io/v1/subscriptions", {
         method: "POST",
@@ -49,10 +49,10 @@ export async function POST(req: Request) {
         return NextResponse.json({ payment_url: subscriptionData.subscription_url });
       }
 
-      console.warn("⚠️ Subscription creation failed, falling back to invoice:", subscriptionData);
+      console.warn("⚠️ Subscription creation failed, using invoice fallback:", subscriptionData);
     }
 
-    // ✅ 3. Fallback: manual invoice (guaranteed to work)
+    // ✅ 3. Fallback: create a direct invoice (multi-coin enabled)
     const fallbackPrices: Record<string, number> = {
       NORMAL_month: 15, // 3 months
       NORMAL_year: 40,
@@ -73,7 +73,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         price_amount,
         price_currency: "usd",
-        pay_currency: "usdttrc20",
+        // ✅ Removed pay_currency → users can now choose any supported coin
         order_id: `${plan}_${duration}_${Date.now()}`,
         order_description: `${plan} ${duration} subscription`,
         customer_email: email || "user@example.com",
@@ -93,7 +93,7 @@ export async function POST(req: Request) {
       );
     }
 
-    console.log("✅ Invoice fallback created successfully");
+    console.log("✅ Multi-coin invoice created successfully");
     return NextResponse.json({ payment_url: invoiceData.invoice_url });
   } catch (err: any) {
     console.error("🔥 Payment creation error:", err);

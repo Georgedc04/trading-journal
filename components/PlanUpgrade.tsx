@@ -29,17 +29,15 @@ export default function PlanUpgrade() {
       setLoading(null);
 
       if (data.payment_url) {
-        // ✅ Detect whether it’s a subscription or fallback
+        // ✅ Show toast before redirecting
         if (data.type === "subscription") {
-          console.info("✅ Subscription payment initialized (Plan ID used)");
           showToast("success", "✅ Subscription checkout initializing...");
-        } else if (data.type === "invoice") {
-          console.warn("⚠️ Fallback: Invoice created (Plan ID not used)");
-          showToast("warning", "⚠️ Using backup payment method...");
+        } else {
+          showToast("warning", "⚠️ Using multi-coin backup payment...");
         }
 
-        // redirect user after showing the toast
-        setTimeout(() => (window.location.href = data.payment_url), 1200);
+        // Small delay before redirect
+        setTimeout(() => (window.location.href = data.payment_url), 1500);
       } else {
         showToast("error", `❌ ${data.error || "Failed to start payment."}`);
       }
@@ -174,6 +172,7 @@ export default function PlanUpgrade() {
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 50 }}
+            transition={{ duration: 0.3 }}
             className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white flex items-center gap-2 ${
               toast.type === "success"
                 ? "bg-emerald-600"
