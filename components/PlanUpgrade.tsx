@@ -1,20 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { motion } from "framer-motion";
-import { Crown, Star, Zap } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Crown, Star, Zap, CheckCircle, AlertTriangle } from "lucide-react";
 import { useUser } from "@clerk/nextjs";
 
 export default function PlanUpgrade() {
   const { user } = useUser();
   const [loading, setLoading] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
-  const [activePlan, setActivePlan] = useState<string>("FREE");
+  const [toast, setToast] = useState<{ type: "success" | "warning" | "error"; text: string } | null>(null);
 
   const handleUpgrade = async (plan: string, duration: "month" | "year") => {
     try {
       setLoading(plan);
-      setMessage(null);
+      setToast(null);
 
       const res = await fetch("/api/plans/create-subscription", {
         method: "POST",
@@ -30,15 +29,30 @@ export default function PlanUpgrade() {
       setLoading(null);
 
       if (data.payment_url) {
-        window.location.href = data.payment_url;
+        // ✅ Detect whether it’s a subscription or fallback
+        if (data.type === "subscription") {
+          console.info("✅ Subscription payment initialized (Plan ID used)");
+          showToast("success", "✅ Subscription checkout initializing...");
+        } else if (data.type === "invoice") {
+          console.warn("⚠️ Fallback: Invoice created (Plan ID not used)");
+          showToast("warning", "⚠️ Using backup payment method...");
+        }
+
+        // redirect user after showing the toast
+        setTimeout(() => (window.location.href = data.payment_url), 1200);
       } else {
-        setMessage(`❌ ${data.error || "Failed to start payment."}`);
+        showToast("error", `❌ ${data.error || "Failed to start payment."}`);
       }
     } catch (err) {
       console.error("💥 Payment error:", err);
-      setMessage("❌ Error connecting to payment server.");
+      showToast("error", "❌ Error connecting to payment server.");
       setLoading(null);
     }
+  };
+
+  const showToast = (type: "success" | "warning" | "error", text: string) => {
+    setToast({ type, text });
+    setTimeout(() => setToast(null), 3500);
   };
 
   const plans = [
@@ -54,26 +68,18 @@ export default function PlanUpgrade() {
     {
       name: "Normal Plan",
       icon: <Zap className="text-emerald-400" size={26} />,
-      monthly: "$10 / 3 months",
-      yearly: "$30 / year",
-      features: [
-        "✅ Unlimited trades",
-        "✅ 1 journal account",
-        "⚡ Basic performance charts",
-      ],
+      monthly: "$15 / 3 months",
+      yearly: "$40 / year",
+      features: ["✅ Unlimited trades", "✅ 1 journal account", "⚡ Basic charts"],
       color: "from-emerald-600 to-emerald-800",
       plan: "NORMAL",
     },
     {
       name: "Pro Plan",
       icon: <Crown className="text-yellow-400" size={26} />,
-      monthly: "$15 / 3 months",
-      yearly: "$50 / year",
-      features: [
-        "✅ Unlimited journals & trades",
-        "✅ All analytics & charts",
-        "🚀 AI-powered insights",
-      ],
+      monthly: "$16 / 2 months",
+      yearly: "$60 / year",
+      features: ["✅ Unlimited journals & trades", "✅ All analytics", "🚀 AI insights"],
       color: "from-indigo-600 to-purple-700",
       plan: "PRO",
     },
@@ -84,7 +90,7 @@ export default function PlanUpgrade() {
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
-      className="max-w-5xl mx-auto mt-10 p-6"
+      className="max-w-5xl mx-auto mt-10 p-6 relative"
     >
       <h1 className="text-2xl sm:text-3xl font-bold text-center text-sky-400 mb-6">
         Choose Your Trading Plan
@@ -137,6 +143,8 @@ export default function PlanUpgrade() {
                 >
                   {loading === `${p.plan}_month`
                     ? "Processing..."
+                    : p.plan === "PRO"
+                    ? "2-Month Plan"
                     : "3-Month Plan"}
                 </button>
 
@@ -159,11 +167,27 @@ export default function PlanUpgrade() {
         ))}
       </div>
 
-      {message && (
-        <div className="mt-6 text-center text-sm font-medium text-cyan-300">
-          {message}
-        </div>
-      )}
+      {/* ✅ Animated Toast */}
+      <AnimatePresence>
+        {toast && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className={`fixed bottom-6 right-6 px-4 py-3 rounded-lg shadow-lg text-white flex items-center gap-2 ${
+              toast.type === "success"
+                ? "bg-emerald-600"
+                : toast.type === "warning"
+                ? "bg-yellow-600"
+                : "bg-red-600"
+            }`}
+          >
+            {toast.type === "success" && <CheckCircle size={18} />}
+            {toast.type === "warning" && <AlertTriangle size={18} />}
+            {toast.text}
+          </motion.div>
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }

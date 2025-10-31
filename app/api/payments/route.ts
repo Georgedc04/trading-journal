@@ -16,17 +16,20 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Define pricing (updated)
+    // ✅ Define updated pricing
     const prices: Record<string, number> = {
-      NORMAL_month: 10, // 3 months
-      NORMAL_year: 30,
-      PRO_month: 15, // 3 months
-      PRO_year: 50,
+      NORMAL_month: 15, // 3 months
+      NORMAL_year: 40,
+      PRO_month: 16, // 2 months
+      PRO_year: 60,
     };
 
     const price_amount = prices[`${plan}_${duration}`];
     if (!price_amount) {
-      return NextResponse.json({ error: "Invalid plan or duration" }, { status: 400 });
+      return NextResponse.json(
+        { error: "Invalid plan or duration" },
+        { status: 400 }
+      );
     }
 
     // ✅ Create invoice on NOWPayments
@@ -39,9 +42,9 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         price_amount,
         price_currency: "usd",
-        pay_currency: "usdttrc20", // stable network (USDT TRC20)
+        pay_currency: "usdttrc20", // Stable network (USDT on TRON)
         order_id: `dc-trades-${Date.now()}`,
-        order_description: `${plan} ${duration} plan subscription`,
+        order_description: `${plan} ${duration} subscription`,
         customer_email: email,
         ipn_callback_url: `${BASE_URL}/api/payments/ipn`,
         success_url: `${BASE_URL}/dashboard?success=${plan}_${duration}`,
@@ -51,7 +54,7 @@ export async function POST(req: Request) {
 
     const data = await res.json();
 
-    // ✅ Handle errors
+    // ✅ Handle NOWPayments errors
     if (!res.ok || !data.invoice_url) {
       console.error("❌ NOWPayments error:", data);
       return NextResponse.json(
@@ -60,12 +63,12 @@ export async function POST(req: Request) {
       );
     }
 
-    // ✅ Return payment URL to frontend
+    // ✅ Return invoice payment link to frontend
     return NextResponse.json({ payment_url: data.invoice_url });
   } catch (err: any) {
     console.error("💥 Payment API error:", err);
     return NextResponse.json(
-      { error: err.message || "Server error creating payment" },
+      { error: err.message || "Server error while creating payment" },
       { status: 500 }
     );
   }

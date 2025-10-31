@@ -8,30 +8,63 @@ export async function POST(req: Request) {
   try {
     const { plan, duration, email } = await req.json();
 
-    if (!plan || !duration) {
+    if (!plan || !duration || !email) {
       return NextResponse.json(
-        { error: "Missing plan or duration" },
+        { error: "Missing plan, duration, or email" },
         { status: 400 }
       );
     }
 
-    // ✅ Updated pricing (safe against NOWPayments minimums)
-    const prices: Record<string, number> = {
-      NORMAL_month: 10,  // 3 months
-      NORMAL_year: 30,
-      PRO_month: 15,     // 3 months
-      PRO_year: 50,
+    // ✅ 1. Map your plan IDs
+    const planMap: Record<string, string | undefined> = {
+      NORMAL_month: process.env.NORMAL_MONTH_PLAN_ID,
+      NORMAL_year: process.env.NORMAL_YEAR_PLAN_ID,
+      PRO_month: process.env.PRO_MONTH_PLAN_ID,
+      PRO_year: process.env.PRO_YEAR_PLAN_ID,
     };
 
-    const price_amount = prices[`${plan}_${duration}`];
-    if (!price_amount)
-      return NextResponse.json(
-        { error: "Invalid plan or duration" },
-        { status: 400 }
-      );
+    const planId = planMap[`${plan}_${duration}`];
 
-    // ✅ Create NOWPayments invoice
-    const response = await fetch("https://api.nowpayments.io/v1/invoice", {
+    // ✅ 2. Subscription attempt
+    if (planId) {
+      const subscriptionRes = await fetch("https://api.nowpayments.io/v1/subscriptions", {
+        method: "POST",
+        headers: {
+          "x-api-key": process.env.NOWPAYMENTS_API_KEY!,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          plan_id: planId,
+          customer_email: email,
+          ipn_callback_url: `${BASE_URL}/api/payments/ipn`,
+          success_url: `${BASE_URL}/dashboard?success=${plan}_${duration}`,
+          cancel_url: `${BASE_URL}/plans?cancelled=true`,
+        }),
+      });
+
+      const subscriptionData = await subscriptionRes.json();
+
+      if (subscriptionRes.ok && subscriptionData.subscription_url) {
+        console.log("✅ Subscription created successfully");
+        return NextResponse.json({ payment_url: subscriptionData.subscription_url });
+      }
+
+      console.warn("⚠️ Subscription creation failed, falling back to invoice:", subscriptionData);
+    }
+
+    // ✅ 3. Fallback: manual invoice (guaranteed to work)
+    const fallbackPrices: Record<string, number> = {
+      NORMAL_month: 15, // 3 months
+      NORMAL_year: 40,
+      PRO_month: 16, // 2 months
+      PRO_year: 60,
+    };
+
+    const price_amount = fallbackPrices[`${plan}_${duration}`];
+    if (!price_amount)
+      return NextResponse.json({ error: "Invalid plan or duration" }, { status: 400 });
+
+    const invoiceRes = await fetch("https://api.nowpayments.io/v1/invoice", {
       method: "POST",
       headers: {
         "x-api-key": process.env.NOWPAYMENTS_API_KEY!,
@@ -40,7 +73,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({
         price_amount,
         price_currency: "usd",
-        pay_currency: "usdttrc20", // stable network
+        pay_currency: "usdttrc20",
         order_id: `${plan}_${duration}_${Date.now()}`,
         order_description: `${plan} ${duration} subscription`,
         customer_email: email || "user@example.com",
@@ -50,21 +83,22 @@ export async function POST(req: Request) {
       }),
     });
 
-    const data = await response.json();
+    const invoiceData = await invoiceRes.json();
 
-    if (!response.ok || !data.invoice_url) {
-      console.error("❌ NOWPayments error:", data);
+    if (!invoiceRes.ok || !invoiceData.invoice_url) {
+      console.error("❌ NOWPayments invoice error:", invoiceData);
       return NextResponse.json(
-        { error: data.message || "Failed to create invoice" },
+        { error: invoiceData.message || "Failed to create payment" },
         { status: 400 }
       );
     }
 
-    return NextResponse.json({ payment_url: data.invoice_url });
-  } catch (err) {
-    console.error("🔥 Payment creation failed:", err);
+    console.log("✅ Invoice fallback created successfully");
+    return NextResponse.json({ payment_url: invoiceData.invoice_url });
+  } catch (err: any) {
+    console.error("🔥 Payment creation error:", err);
     return NextResponse.json(
-      { error: "Server error while creating payment" },
+      { error: err.message || "Server error while creating payment" },
       { status: 500 }
     );
   }
